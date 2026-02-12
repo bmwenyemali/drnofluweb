@@ -26,6 +26,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { createBrowserClient } from "@/lib/supabase";
+import { ImageUpload } from "@/components/admin";
 
 export default function ParametresPage() {
   const [loading, setLoading] = useState(false);
@@ -36,6 +37,9 @@ export default function ParametresPage() {
     nom_complet: "",
     email: "",
     avatar_url: "",
+    bio: "",
+    telephone: "",
+    role: "lecteur" as string,
   });
 
   // Password state
@@ -78,6 +82,9 @@ export default function ParametresPage() {
           nom_complet: profileData.nom_complet || "",
           email: user.email || "",
           avatar_url: profileData.avatar_url || "",
+          bio: profileData.bio || "",
+          telephone: profileData.telephone || "",
+          role: profileData.role || "lecteur",
         });
       }
     } catch (error) {
@@ -100,6 +107,8 @@ export default function ParametresPage() {
         .update({
           nom_complet: profile.nom_complet,
           avatar_url: profile.avatar_url,
+          bio: profile.bio,
+          telephone: profile.telephone,
           updated_at: new Date().toISOString(),
         })
         .eq("id", user.id);
@@ -193,16 +202,24 @@ export default function ParametresPage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div className="flex items-center gap-6">
-                <div className="w-20 h-20 rounded-full bg-primary-100 flex items-center justify-center text-2xl font-bold text-primary-700">
-                  {profile.nom_complet.charAt(0) || "?"}
+              <div className="flex flex-col sm:flex-row items-start gap-6">
+                <div className="space-y-2">
+                  <Label>Photo de profil</Label>
+                  <ImageUpload
+                    value={profile.avatar_url}
+                    onChange={(url) =>
+                      setProfile({ ...profile, avatar_url: url })
+                    }
+                    folder="avatars"
+                    className="w-32 h-32 rounded-full overflow-hidden"
+                  />
                 </div>
-                <div>
-                  <h3 className="font-medium">
-                    {profile.nom_complet || "Nom"}
+                <div className="flex-1 pt-4">
+                  <h3 className="font-medium text-lg">
+                    {profile.nom_complet || "Votre nom"}
                   </h3>
                   <p className="text-sm text-gray-500">{profile.email}</p>
-                  <Badge className="mt-2">Administrateur</Badge>
+                  <Badge className="mt-2 capitalize">{profile.role}</Badge>
                 </div>
               </div>
 
@@ -229,17 +246,29 @@ export default function ParametresPage() {
                     className="bg-gray-50"
                   />
                 </div>
+                <div className="space-y-2">
+                  <Label htmlFor="telephone">Téléphone</Label>
+                  <Input
+                    id="telephone"
+                    value={profile.telephone}
+                    onChange={(e) =>
+                      setProfile({ ...profile, telephone: e.target.value })
+                    }
+                    placeholder="+243 ..."
+                  />
+                </div>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="avatar_url">URL de l'avatar</Label>
-                <Input
-                  id="avatar_url"
-                  value={profile.avatar_url}
+                <Label htmlFor="bio">Bio</Label>
+                <Textarea
+                  id="bio"
+                  value={profile.bio}
                   onChange={(e) =>
-                    setProfile({ ...profile, avatar_url: e.target.value })
+                    setProfile({ ...profile, bio: e.target.value })
                   }
-                  placeholder="https://..."
+                  placeholder="Parlez-nous de vous..."
+                  rows={4}
                 />
               </div>
 

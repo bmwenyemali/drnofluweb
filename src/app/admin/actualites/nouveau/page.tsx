@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Save, Eye, Image as ImageIcon, X } from "lucide-react";
+import { ArrowLeft, Save, Eye, X, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -21,6 +21,9 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { createBrowserClient } from "@/lib/supabase";
 import { CATEGORIES_ACTUALITES } from "@/lib/config";
 import { CategorieActualite } from "@/lib/types";
+import { ImageUpload, MultiImageUpload } from "@/components/admin/ImageUpload";
+import { YouTubeInput } from "@/components/admin/YouTubeInput";
+import { RichTextEditor } from "@/components/admin/RichTextEditor";
 
 export default function NouvelleActualitePage() {
   const [titre, setTitre] = useState("");
@@ -29,7 +32,10 @@ export default function NouvelleActualitePage() {
   const [contenu, setContenu] = useState("");
   const [categorie, setCategorie] = useState<CategorieActualite>("general");
   const [imageUrl, setImageUrl] = useState("");
+  const [galerieImages, setGalerieImages] = useState<string[]>([]);
+  const [videosYoutube, setVideosYoutube] = useState<string[]>([]);
   const [publie, setPublie] = useState(false);
+  const [aLaUne, setALaUne] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const router = useRouter();
@@ -68,7 +74,7 @@ export default function NouvelleActualitePage() {
         return;
       }
 
-      const { data, error: insertError } = await supabase
+      const { error: insertError } = await supabase
         .from("actualites")
         .insert({
           titre,
@@ -77,7 +83,10 @@ export default function NouvelleActualitePage() {
           contenu,
           categorie,
           image_url: imageUrl || null,
+          galerie_images: galerieImages,
+          videos_youtube: videosYoutube,
           publie,
+          a_la_une: aLaUne,
           auteur_id: user.id,
           date_publication: publie ? new Date().toISOString() : null,
         })
@@ -87,8 +96,10 @@ export default function NouvelleActualitePage() {
       if (insertError) throw insertError;
 
       router.push("/admin/actualites");
-    } catch (err: any) {
-      setError(err.message || "Une erreur est survenue");
+    } catch (err: unknown) {
+      const errorMessage =
+        err instanceof Error ? err.message : "Une erreur est survenue";
+      setError(errorMessage);
       setLoading(false);
     }
   };
@@ -180,16 +191,43 @@ export default function NouvelleActualitePage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="contenu">Contenu *</Label>
-                  <Textarea
-                    id="contenu"
+                  <Label>Contenu de l&apos;article *</Label>
+                  <RichTextEditor
                     value={contenu}
-                    onChange={(e) => setContenu(e.target.value)}
-                    placeholder="Contenu complet de l'actualité..."
-                    rows={15}
-                    required
+                    onChange={setContenu}
+                    placeholder="Rédigez le contenu complet de l'actualité..."
+                    minHeight="400px"
                   />
                 </div>
+              </CardContent>
+            </Card>
+
+            {/* Galerie d'images */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Galerie d&apos;images</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <MultiImageUpload
+                  value={galerieImages}
+                  onChange={setGalerieImages}
+                  folder="drnoflu/actualites"
+                  maxImages={10}
+                />
+              </CardContent>
+            </Card>
+
+            {/* Vidéos YouTube */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Vidéos YouTube</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <YouTubeInput
+                  value={videosYoutube}
+                  onChange={setVideosYoutube}
+                  maxVideos={5}
+                />
               </CardContent>
             </Card>
           </div>
@@ -212,10 +250,31 @@ export default function NouvelleActualitePage() {
                     Publier immédiatement
                   </Label>
                 </div>
-                <div className="pt-2">
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="aLaUne"
+                    checked={aLaUne}
+                    onCheckedChange={(checked) => setALaUne(checked as boolean)}
+                  />
+                  <Label
+                    htmlFor="aLaUne"
+                    className="cursor-pointer flex items-center gap-1"
+                  >
+                    <Star className="h-4 w-4 text-yellow-500" />À la une
+                  </Label>
+                </div>
+                <div className="pt-2 flex gap-2">
                   <Badge variant={publie ? "default" : "secondary"}>
                     {publie ? "Sera publié" : "Brouillon"}
                   </Badge>
+                  {aLaUne && (
+                    <Badge
+                      variant="outline"
+                      className="border-yellow-500 text-yellow-600"
+                    >
+                      À la une
+                    </Badge>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -251,36 +310,14 @@ export default function NouvelleActualitePage() {
               <CardHeader>
                 <CardTitle>Image de couverture</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="imageUrl">URL de l'image</Label>
-                  <Input
-                    id="imageUrl"
-                    value={imageUrl}
-                    onChange={(e) => setImageUrl(e.target.value)}
-                    placeholder="https://..."
-                  />
-                </div>
-                {imageUrl && (
-                  <div className="relative aspect-video bg-gray-100 rounded-lg overflow-hidden">
-                    <img
-                      src={imageUrl}
-                      alt="Aperçu"
-                      className="w-full h-full object-cover"
-                      onError={(e) => {
-                        e.currentTarget.style.display = "none";
-                      }}
-                    />
-                  </div>
-                )}
-                {!imageUrl && (
-                  <div className="aspect-video bg-gray-100 rounded-lg flex items-center justify-center">
-                    <div className="text-center text-gray-400">
-                      <ImageIcon className="h-12 w-12 mx-auto mb-2" />
-                      <p className="text-sm">Aucune image</p>
-                    </div>
-                  </div>
-                )}
+              <CardContent>
+                <ImageUpload
+                  value={imageUrl}
+                  onChange={setImageUrl}
+                  folder="drnoflu/actualites"
+                  aspectRatio="video"
+                  placeholder="Cliquez pour ajouter une image de couverture"
+                />
               </CardContent>
             </Card>
           </div>

@@ -1,10 +1,11 @@
 import { Metadata } from "next";
 import Image from "next/image";
-import { Mail, Phone, Award, Briefcase } from "lucide-react";
+import { Mail, Phone, Award, Briefcase, Linkedin, Users } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { DIRECTION_INFO } from "@/lib/config";
+import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = {
   title: "Direction",
@@ -12,10 +13,37 @@ export const metadata: Metadata = {
     "Découvrez l'équipe de direction de la DRNOFLU - Direction des Recettes Non Fiscales du Lualaba.",
 };
 
+async function getPersonnel() {
+  const supabase = await createClient();
+  const { data: personnel, error } = await supabase
+    .from("personnel")
+    .select("*")
+    .eq("actif", true)
+    .order("ordre", { ascending: true })
+    .order("nom", { ascending: true });
+
+  if (error) {
+    console.error("Error fetching personnel:", error);
+    return [];
+  }
+
+  return personnel || [];
+}
+
 /**
  * Page Direction - Présentation de l'équipe dirigeante
  */
-export default function DirectionPage() {
+export default async function DirectionPage() {
+  const personnel = await getPersonnel();
+
+  // Grouper le personnel par équipe
+  const personnelByTeam = personnel.reduce((acc: any, p: any) => {
+    const team = p.equipe || "autre";
+    if (!acc[team]) acc[team] = [];
+    acc[team].push(p);
+    return acc;
+  }, {});
+
   return (
     <>
       {/* Hero Banner */}
@@ -135,97 +163,241 @@ export default function DirectionPage() {
             Équipe de Direction
           </h2>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto">
-            {/* Directeur Adjoint */}
-            <Card className="text-center hover:shadow-lg transition-shadow">
-              <CardContent className="pt-8 pb-6">
-                <div className="w-24 h-24 mx-auto mb-4 bg-gray-200 rounded-full flex items-center justify-center">
-                  <span className="text-3xl text-gray-400">👤</span>
-                </div>
-                <Badge variant="secondary" className="mb-2">
-                  Directeur Adjoint
-                </Badge>
-                <h3 className="text-lg font-semibold">À nommer</h3>
-                <p className="text-sm text-gray-500">
-                  Coordination opérationnelle
-                </p>
-              </CardContent>
-            </Card>
-
-            {/* Chef de Division Recouvrement */}
-            <Card className="text-center hover:shadow-lg transition-shadow">
-              <CardContent className="pt-8 pb-6">
-                <div className="w-24 h-24 mx-auto mb-4 bg-gray-200 rounded-full flex items-center justify-center">
-                  <span className="text-3xl text-gray-400">👤</span>
-                </div>
-                <Badge variant="secondary" className="mb-2">
-                  Chef Division Recouvrement
-                </Badge>
-                <h3 className="text-lg font-semibold">À nommer</h3>
-                <p className="text-sm text-gray-500">
-                  Gestion des recouvrements
-                </p>
-              </CardContent>
-            </Card>
-
-            {/* Chef de Division Contentieux */}
-            <Card className="text-center hover:shadow-lg transition-shadow">
-              <CardContent className="pt-8 pb-6">
-                <div className="w-24 h-24 mx-auto mb-4 bg-gray-200 rounded-full flex items-center justify-center">
-                  <span className="text-3xl text-gray-400">👤</span>
-                </div>
-                <Badge variant="secondary" className="mb-2">
-                  Chef Division Contentieux
-                </Badge>
-                <h3 className="text-lg font-semibold">À nommer</h3>
-                <p className="text-sm text-gray-500">Affaires juridiques</p>
-              </CardContent>
-            </Card>
-
-            {/* Chef de Division Administrative */}
-            <Card className="text-center hover:shadow-lg transition-shadow">
-              <CardContent className="pt-8 pb-6">
-                <div className="w-24 h-24 mx-auto mb-4 bg-gray-200 rounded-full flex items-center justify-center">
-                  <span className="text-3xl text-gray-400">👤</span>
-                </div>
-                <Badge variant="secondary" className="mb-2">
-                  Chef Division Admin
-                </Badge>
-                <h3 className="text-lg font-semibold">À nommer</h3>
-                <p className="text-sm text-gray-500">Gestion administrative</p>
-              </CardContent>
-            </Card>
-
-            {/* Chef de Division Études et Statistiques */}
-            <Card className="text-center hover:shadow-lg transition-shadow">
-              <CardContent className="pt-8 pb-6">
-                <div className="w-24 h-24 mx-auto mb-4 bg-gray-200 rounded-full flex items-center justify-center">
-                  <span className="text-3xl text-gray-400">👤</span>
-                </div>
-                <Badge variant="secondary" className="mb-2">
-                  Chef Division Études
-                </Badge>
-                <h3 className="text-lg font-semibold">À nommer</h3>
-                <p className="text-sm text-gray-500">Études et statistiques</p>
-              </CardContent>
-            </Card>
-
-            {/* Secrétariat de Direction */}
-            <Card className="text-center hover:shadow-lg transition-shadow">
-              <CardContent className="pt-8 pb-6">
-                <div className="w-24 h-24 mx-auto mb-4 bg-gray-200 rounded-full flex items-center justify-center">
-                  <span className="text-3xl text-gray-400">👤</span>
-                </div>
-                <Badge variant="secondary" className="mb-2">
-                  Secrétariat de Direction
-                </Badge>
-                <h3 className="text-lg font-semibold">À nommer</h3>
-                <p className="text-sm text-gray-500">Support administratif</p>
-              </CardContent>
-            </Card>
-          </div>
+          {personnelByTeam.direction && personnelByTeam.direction.length > 0 ? (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto">
+              {personnelByTeam.direction.map((membre: any) => (
+                <Card
+                  key={membre.id}
+                  className="text-center hover:shadow-lg transition-shadow"
+                >
+                  <CardContent className="pt-8 pb-6">
+                    <div className="w-24 h-24 mx-auto mb-4 rounded-full overflow-hidden bg-gray-200 relative">
+                      {membre.photo_url ? (
+                        <Image
+                          src={membre.photo_url}
+                          alt={membre.nom}
+                          fill
+                          className="object-cover"
+                        />
+                      ) : (
+                        <div className="flex items-center justify-center h-full">
+                          <span className="text-3xl text-gray-400">👤</span>
+                        </div>
+                      )}
+                    </div>
+                    <Badge variant="secondary" className="mb-2">
+                      {membre.fonction}
+                    </Badge>
+                    <h3 className="text-lg font-semibold">{membre.nom}</h3>
+                    {membre.departement && (
+                      <p className="text-sm text-gray-500">
+                        {membre.departement}
+                      </p>
+                    )}
+                    {membre.bio && (
+                      <p className="text-sm text-gray-600 mt-2 line-clamp-2">
+                        {membre.bio}
+                      </p>
+                    )}
+                    <div className="flex justify-center gap-3 mt-4">
+                      {membre.email && (
+                        <a
+                          href={`mailto:${membre.email}`}
+                          className="text-primary-600 hover:text-primary-700"
+                        >
+                          <Mail className="h-4 w-4" />
+                        </a>
+                      )}
+                      {membre.telephone && (
+                        <a
+                          href={`tel:${membre.telephone}`}
+                          className="text-primary-600 hover:text-primary-700"
+                        >
+                          <Phone className="h-4 w-4" />
+                        </a>
+                      )}
+                      {membre.linkedin && (
+                        <a
+                          href={membre.linkedin}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-600 hover:text-blue-700"
+                        >
+                          <Linkedin className="h-4 w-4" />
+                        </a>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto">
+              {/* Placeholder cards when no personnel in database */}
+              {[
+                {
+                  titre: "Directeur Adjoint",
+                  desc: "Coordination opérationnelle",
+                },
+                {
+                  titre: "Chef Division Recouvrement",
+                  desc: "Gestion des recouvrements",
+                },
+                {
+                  titre: "Chef Division Contentieux",
+                  desc: "Affaires juridiques",
+                },
+                {
+                  titre: "Chef Division Admin",
+                  desc: "Gestion administrative",
+                },
+                {
+                  titre: "Chef Division Études",
+                  desc: "Études et statistiques",
+                },
+                {
+                  titre: "Secrétariat de Direction",
+                  desc: "Support administratif",
+                },
+              ].map((poste, idx) => (
+                <Card
+                  key={idx}
+                  className="text-center hover:shadow-lg transition-shadow"
+                >
+                  <CardContent className="pt-8 pb-6">
+                    <div className="w-24 h-24 mx-auto mb-4 bg-gray-200 rounded-full flex items-center justify-center">
+                      <span className="text-3xl text-gray-400">👤</span>
+                    </div>
+                    <Badge variant="secondary" className="mb-2">
+                      {poste.titre}
+                    </Badge>
+                    <h3 className="text-lg font-semibold">À nommer</h3>
+                    <p className="text-sm text-gray-500">{poste.desc}</p>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
         </div>
       </section>
+
+      {/* Autres équipes */}
+      {(personnelByTeam.division ||
+        personnelByTeam.service ||
+        personnelByTeam.antenne) && (
+        <section className="py-16 bg-gray-50">
+          <div className="container mx-auto px-4">
+            {personnelByTeam.division &&
+              personnelByTeam.division.length > 0 && (
+                <>
+                  <h2 className="text-2xl font-bold text-center mb-8 flex items-center justify-center gap-2">
+                    <Users className="h-6 w-6 text-primary-600" />
+                    Chefs de Division
+                  </h2>
+                  <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4 max-w-6xl mx-auto mb-12">
+                    {personnelByTeam.division.map((membre: any) => (
+                      <Card key={membre.id} className="text-center">
+                        <CardContent className="py-6">
+                          <div className="w-16 h-16 mx-auto mb-3 rounded-full overflow-hidden bg-gray-200 relative">
+                            {membre.photo_url ? (
+                              <Image
+                                src={membre.photo_url}
+                                alt={membre.nom}
+                                fill
+                                className="object-cover"
+                              />
+                            ) : (
+                              <div className="flex items-center justify-center h-full text-2xl text-gray-400">
+                                👤
+                              </div>
+                            )}
+                          </div>
+                          <h4 className="font-medium">{membre.nom}</h4>
+                          <p className="text-xs text-gray-500">
+                            {membre.fonction}
+                          </p>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                </>
+              )}
+
+            {personnelByTeam.service && personnelByTeam.service.length > 0 && (
+              <>
+                <h2 className="text-2xl font-bold text-center mb-8">
+                  Chefs de Service
+                </h2>
+                <div className="grid md:grid-cols-3 lg:grid-cols-4 gap-4 max-w-6xl mx-auto mb-12">
+                  {personnelByTeam.service.map((membre: any) => (
+                    <Card key={membre.id} className="text-center">
+                      <CardContent className="py-4">
+                        <div className="w-12 h-12 mx-auto mb-2 rounded-full overflow-hidden bg-gray-200 relative">
+                          {membre.photo_url ? (
+                            <Image
+                              src={membre.photo_url}
+                              alt={membre.nom}
+                              fill
+                              className="object-cover"
+                            />
+                          ) : (
+                            <div className="flex items-center justify-center h-full text-xl text-gray-400">
+                              👤
+                            </div>
+                          )}
+                        </div>
+                        <h4 className="font-medium text-sm">{membre.nom}</h4>
+                        <p className="text-xs text-gray-500">
+                          {membre.fonction}
+                        </p>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </>
+            )}
+
+            {personnelByTeam.antenne && personnelByTeam.antenne.length > 0 && (
+              <>
+                <h2 className="text-2xl font-bold text-center mb-8">
+                  Responsables d&apos;Antennes
+                </h2>
+                <div className="grid md:grid-cols-3 lg:grid-cols-4 gap-4 max-w-6xl mx-auto">
+                  {personnelByTeam.antenne.map((membre: any) => (
+                    <Card key={membre.id} className="text-center">
+                      <CardContent className="py-4">
+                        <div className="w-12 h-12 mx-auto mb-2 rounded-full overflow-hidden bg-gray-200 relative">
+                          {membre.photo_url ? (
+                            <Image
+                              src={membre.photo_url}
+                              alt={membre.nom}
+                              fill
+                              className="object-cover"
+                            />
+                          ) : (
+                            <div className="flex items-center justify-center h-full text-xl text-gray-400">
+                              👤
+                            </div>
+                          )}
+                        </div>
+                        <h4 className="font-medium text-sm">{membre.nom}</h4>
+                        <p className="text-xs text-gray-500">
+                          {membre.fonction}
+                        </p>
+                        {membre.departement && (
+                          <Badge variant="outline" className="mt-1 text-xs">
+                            {membre.departement}
+                          </Badge>
+                        )}
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+        </section>
+      )}
     </>
   );
 }

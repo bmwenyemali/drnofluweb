@@ -16,6 +16,8 @@ CREATE TABLE IF NOT EXISTS profiles (
     nom_complet TEXT NOT NULL,
     role TEXT NOT NULL DEFAULT 'lecteur' CHECK (role IN ('admin', 'editeur', 'lecteur')),
     avatar_url TEXT,
+    bio TEXT,
+    telephone TEXT,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -69,7 +71,7 @@ CREATE TRIGGER on_auth_user_created
 
 -- ============================================================================
 -- ACTUALITES TABLE
--- News and announcements
+-- News and announcements with rich content
 -- ============================================================================
 CREATE TABLE IF NOT EXISTS actualites (
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
@@ -78,11 +80,14 @@ CREATE TABLE IF NOT EXISTS actualites (
     contenu TEXT NOT NULL,
     extrait TEXT NOT NULL,
     image_url TEXT,
+    galerie_images TEXT[] DEFAULT '{}',
+    videos_youtube TEXT[] DEFAULT '{}',
     categorie TEXT NOT NULL DEFAULT 'general' CHECK (
         categorie IN ('communique', 'rapport', 'evenement', 'annonce', 'general')
     ),
     auteur_id UUID REFERENCES profiles(id),
     publie BOOLEAN DEFAULT FALSE,
+    a_la_une BOOLEAN DEFAULT FALSE,
     date_publication TIMESTAMPTZ,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
@@ -132,22 +137,27 @@ CREATE INDEX IF NOT EXISTS idx_actualites_slug ON actualites(slug);
 CREATE INDEX IF NOT EXISTS idx_actualites_publie ON actualites(publie) WHERE publie = TRUE;
 
 -- ============================================================================
--- DOCUMENTS TABLE
--- Legal documents and forms
+-- DOCUMENTS TABLE (Bibliothèque)
+-- Legal documents, books, and forms with library features
 -- ============================================================================
 CREATE TABLE IF NOT EXISTS documents (
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
     titre TEXT NOT NULL,
     description TEXT,
+    resume TEXT,
+    auteur TEXT,
+    nombre_pages INTEGER,
     type TEXT NOT NULL CHECK (type IN ('pdf', 'doc', 'docx', 'xls', 'xlsx')),
     categorie TEXT NOT NULL CHECK (
-        categorie IN ('ordonnance', 'arrete', 'decret', 'loi', 'circulaire', 'note', 'formulaire', 'rapport')
+        categorie IN ('ordonnance', 'arrete', 'decret', 'loi', 'circulaire', 'note', 'formulaire', 'rapport', 'livre', 'guide')
     ),
     fichier_url TEXT NOT NULL,
+    image_couverture_url TEXT,
     taille_fichier INTEGER,
     date_publication TIMESTAMPTZ DEFAULT NOW(),
     annee INTEGER NOT NULL,
     publie BOOLEAN DEFAULT TRUE,
+    telechargements INTEGER DEFAULT 0,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -260,7 +270,7 @@ CREATE INDEX IF NOT EXISTS idx_stats_annee ON statistiques_recettes(annee);
 
 -- ============================================================================
 -- PERSONNEL TABLE
--- Staff directory
+-- Staff directory with team categories
 -- ============================================================================
 CREATE TABLE IF NOT EXISTS personnel (
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
@@ -268,9 +278,14 @@ CREATE TABLE IF NOT EXISTS personnel (
     titre TEXT NOT NULL,
     fonction TEXT NOT NULL,
     departement TEXT NOT NULL,
+    equipe TEXT NOT NULL DEFAULT 'autre' CHECK (
+        equipe IN ('direction', 'cadres', 'technique', 'administratif', 'autre')
+    ),
+    bio TEXT,
     photo_url TEXT,
     email TEXT,
     telephone TEXT,
+    linkedin TEXT,
     ordre INTEGER DEFAULT 0,
     actif BOOLEAN DEFAULT TRUE,
     created_at TIMESTAMPTZ DEFAULT NOW(),
@@ -378,6 +393,68 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+-- ============================================================================
+-- SITE_SETTINGS TABLE
+-- Site configuration managed by admins
+-- ============================================================================
+CREATE TABLE IF NOT EXISTS site_settings (
+    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    cle TEXT NOT NULL UNIQUE,
+    valeur TEXT NOT NULL,
+    description TEXT,
+    type TEXT DEFAULT 'text' CHECK (type IN ('text', 'image', 'json', 'html', 'number')),
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Enable RLS
+ALTER TABLE site_settings ENABLE ROW LEVEL SECURITY;
+
+-- Policies
+CREATE POLICY "Settings are viewable by everyone" ON site_settings
+    FOR SELECT USING (TRUE);
+
+CREATE POLICY "Only admins can manage settings" ON site_settings
+    FOR ALL USING (
+        EXISTS (
+            SELECT 1 FROM profiles 
+            WHERE id = auth.uid() AND role = 'admin'
+        )
+    );
+
+-- ============================================================================
+-- PAGES_CONTENT TABLE
+-- Dynamic page content managed by admins
+-- ============================================================================
+CREATE TABLE IF NOT EXISTS pages_content (
+    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    page TEXT NOT NULL,
+    section TEXT NOT NULL,
+    titre TEXT,
+    contenu TEXT,
+    image_url TEXT,
+    ordre INTEGER DEFAULT 0,
+    actif BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW(),
+    UNIQUE(page, section)
+);
+
+-- Enable RLS
+ALTER TABLE pages_content ENABLE ROW LEVEL SECURITY;
+
+-- Policies
+CREATE POLICY "Page content viewable by everyone" ON pages_content
+    FOR SELECT USING (actif = TRUE);
+
+CREATE POLICY "Admins can manage page content" ON pages_content
+    FOR ALL USING (
+        EXISTS (
+            SELECT 1 FROM profiles 
+            WHERE id = auth.uid() AND role = 'admin'
+        )
+    );
+
 -- Apply trigger to all tables with updated_at
 DROP TRIGGER IF EXISTS update_profiles_updated_at ON profiles;
 CREATE TRIGGER update_profiles_updated_at
@@ -409,10 +486,32 @@ CREATE TRIGGER update_bon_a_savoir_updated_at
     BEFORE UPDATE ON bon_a_savoir
     FOR EACH ROW EXECUTE FUNCTION update_updated_at();
 
+DROP TRIGGER IF EXISTS update_site_settings_updated_at ON site_settings;
+CREATE TRIGGER update_site_settings_updated_at
+    BEFORE UPDATE ON site_settings
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at();
+
+DROP TRIGGER IF EXISTS update_pages_content_updated_at ON pages_content;
+CREATE TRIGGER update_pages_content_updated_at
+    BEFORE UPDATE ON pages_content
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at();
+
 -- ============================================================================
--- SEED DATA - Initial admin user (replace with actual values)
--- Note: Create user through Supabase Auth first, then update this ID
+-- SEED DATA - Initial configuration
 -- ============================================================================
+
+-- Insert site settings
+INSERT INTO site_settings (cle, valeur, description, type) VALUES
+    ('site_name', 'DRNOFLU', 'Nom du site', 'text'),
+    ('site_fullname', 'Direction des Recettes Non Fiscales du Lualaba', 'Nom complet', 'text'),
+    ('site_description', 'Institution provinciale chargée de la collecte et de la gestion des recettes non fiscales', 'Description', 'text'),
+    ('contact_email', 'contact@drnoflu.gouv.cd', 'Email de contact', 'text'),
+    ('contact_phone', '+243 81 234 5678', 'Téléphone de contact', 'text'),
+    ('address', 'Avenue Mobutu, Quartier Administratif, Kolwezi, Lualaba, RDC', 'Adresse complète', 'text'),
+    ('facebook_url', 'https://facebook.com/drnoflu', 'Page Facebook', 'text'),
+    ('hero_title', 'Direction des Recettes Non Fiscales du Lualaba', 'Titre Hero', 'text'),
+    ('hero_subtitle', 'Au service de la mobilisation des ressources provinciales pour un développement durable et équitable du Lualaba.', 'Sous-titre Hero', 'text')
+ON CONFLICT (cle) DO NOTHING;
 
 -- Insert sample services
 INSERT INTO services (nom, description, icone, slug, ordre) VALUES

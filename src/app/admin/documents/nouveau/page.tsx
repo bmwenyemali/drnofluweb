@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Save, Upload, FileText } from "lucide-react";
+import { ArrowLeft, Save, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -20,6 +20,8 @@ import {
 } from "@/components/ui/select";
 import { createBrowserClient } from "@/lib/supabase";
 import { CategorieDocument, TypeDocument } from "@/lib/types";
+import { ImageUpload } from "@/components/admin/ImageUpload";
+import { FileUpload } from "@/components/admin/FileUpload";
 
 const CATEGORIES: { id: CategorieDocument; label: string }[] = [
   { id: "ordonnance", label: "Ordonnance" },
@@ -30,6 +32,8 @@ const CATEGORIES: { id: CategorieDocument; label: string }[] = [
   { id: "note", label: "Note" },
   { id: "formulaire", label: "Formulaire" },
   { id: "rapport", label: "Rapport" },
+  { id: "livre", label: "Livre" },
+  { id: "guide", label: "Guide" },
 ];
 
 const TYPES: { id: TypeDocument; label: string }[] = [
@@ -43,9 +47,14 @@ const TYPES: { id: TypeDocument; label: string }[] = [
 export default function NouveauDocumentPage() {
   const [titre, setTitre] = useState("");
   const [description, setDescription] = useState("");
+  const [resume, setResume] = useState("");
+  const [auteur, setAuteur] = useState("");
+  const [nombrePages, setNombrePages] = useState("");
   const [categorie, setCategorie] = useState<CategorieDocument>("rapport");
   const [type, setType] = useState<TypeDocument>("pdf");
   const [fichierUrl, setFichierUrl] = useState("");
+  const [imageCouvertureUrl, setImageCouvertureUrl] = useState("");
+  const [tailleFichier, setTailleFichier] = useState<number | undefined>();
   const [annee, setAnnee] = useState(new Date().getFullYear().toString());
   const [publie, setPublie] = useState(true);
   const [loading, setLoading] = useState(false);
@@ -53,20 +62,30 @@ export default function NouveauDocumentPage() {
   const router = useRouter();
   const supabase = createBrowserClient();
 
+  const handleFileUpload = (url: string, fileSize?: number) => {
+    setFichierUrl(url);
+    if (fileSize) setTailleFichier(fileSize);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     setLoading(true);
 
     try {
-      const { data, error: insertError } = await supabase
+      const { error: insertError } = await supabase
         .from("documents")
         .insert({
           titre,
           description: description || null,
+          resume: resume || null,
+          auteur: auteur || null,
+          nombre_pages: nombrePages ? parseInt(nombrePages) : null,
           categorie,
           type,
           fichier_url: fichierUrl,
+          image_couverture_url: imageCouvertureUrl || null,
+          taille_fichier: tailleFichier || null,
           annee: parseInt(annee),
           publie,
           date_publication: new Date().toISOString(),
@@ -77,8 +96,10 @@ export default function NouveauDocumentPage() {
       if (insertError) throw insertError;
 
       router.push("/admin/documents");
-    } catch (err: any) {
-      setError(err.message || "Une erreur est survenue");
+    } catch (err: unknown) {
+      const errorMessage =
+        err instanceof Error ? err.message : "Une erreur est survenue";
+      setError(errorMessage);
       setLoading(false);
     }
   };
@@ -98,7 +119,7 @@ export default function NouveauDocumentPage() {
               Nouveau Document
             </h1>
             <p className="text-gray-500">
-              Ajoutez un nouveau document juridique ou formulaire
+              Ajoutez un nouveau document à la bibliothèque
             </p>
           </div>
         </div>
@@ -112,7 +133,10 @@ export default function NouveauDocumentPage() {
       </div>
 
       {error && (
-        <div className="bg-red-50 text-red-700 p-4 rounded-lg">{error}</div>
+        <div className="bg-red-50 text-red-700 p-4 rounded-lg flex items-center gap-2">
+          <X className="h-4 w-4" />
+          {error}
+        </div>
       )}
 
       <form onSubmit={handleSubmit}>
@@ -135,36 +159,65 @@ export default function NouveauDocumentPage() {
                   />
                 </div>
 
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="auteur">Auteur</Label>
+                    <Input
+                      id="auteur"
+                      value={auteur}
+                      onChange={(e) => setAuteur(e.target.value)}
+                      placeholder="Nom de l'auteur"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="nombrePages">Nombre de pages</Label>
+                    <Input
+                      id="nombrePages"
+                      type="number"
+                      value={nombrePages}
+                      onChange={(e) => setNombrePages(e.target.value)}
+                      placeholder="Ex: 50"
+                      min="1"
+                    />
+                  </div>
+                </div>
+
                 <div className="space-y-2">
-                  <Label htmlFor="description">Description</Label>
+                  <Label htmlFor="description">Description courte</Label>
                   <Textarea
                     id="description"
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
-                    placeholder="Description optionnelle du document..."
-                    rows={3}
+                    placeholder="Brève description du document..."
+                    rows={2}
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="fichierUrl">URL du fichier *</Label>
-                  <div className="flex gap-2">
-                    <Input
-                      id="fichierUrl"
-                      value={fichierUrl}
-                      onChange={(e) => setFichierUrl(e.target.value)}
-                      placeholder="https://..."
-                      required
-                    />
-                    <Button type="button" variant="outline">
-                      <Upload className="h-4 w-4" />
-                    </Button>
-                  </div>
-                  <p className="text-xs text-gray-500">
-                    Entrez l'URL du fichier ou téléchargez-le vers un service de
-                    stockage
-                  </p>
+                  <Label htmlFor="resume">Résumé détaillé</Label>
+                  <Textarea
+                    id="resume"
+                    value={resume}
+                    onChange={(e) => setResume(e.target.value)}
+                    placeholder="Résumé complet du document, points clés..."
+                    rows={5}
+                  />
                 </div>
+              </CardContent>
+            </Card>
+
+            {/* Fichier */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Fichier du document *</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <FileUpload
+                  value={fichierUrl}
+                  onChange={handleFileUpload}
+                  folder="drnoflu/documents"
+                  placeholder="Cliquez pour télécharger le document"
+                />
               </CardContent>
             </Card>
           </div>
@@ -262,6 +315,25 @@ export default function NouveauDocumentPage() {
               </CardContent>
             </Card>
 
+            {/* Image de couverture */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Image de couverture</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ImageUpload
+                  value={imageCouvertureUrl}
+                  onChange={setImageCouvertureUrl}
+                  folder="drnoflu/documents/covers"
+                  aspectRatio="portrait"
+                  placeholder="Image de la première page"
+                />
+                <p className="text-xs text-gray-500 mt-2">
+                  Recommandé: Image de la première page du document
+                </p>
+              </CardContent>
+            </Card>
+
             {/* Preview */}
             <Card>
               <CardHeader>
@@ -279,6 +351,7 @@ export default function NouveauDocumentPage() {
                     <p className="text-sm text-gray-500">
                       {CATEGORIES.find((c) => c.id === categorie)?.label} •{" "}
                       {type.toUpperCase()}
+                      {nombrePages && ` • ${nombrePages} pages`}
                     </p>
                   </div>
                 </div>

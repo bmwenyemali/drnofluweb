@@ -10,6 +10,8 @@ export interface Profile {
   nom_complet: string;
   role: "admin" | "editeur" | "lecteur";
   avatar_url?: string;
+  bio?: string;
+  telephone?: string;
   created_at: string;
   updated_at: string;
 }
@@ -22,10 +24,14 @@ export interface Actualite {
   contenu: string;
   extrait: string;
   image_url?: string;
+  galerie_images: string[];
+  videos_youtube: string[];
   categorie: CategorieActualite;
-  auteur_id: string;
+  auteur_id?: string;
+  auteur?: Profile;
   publie: boolean;
-  date_publication: string;
+  a_la_une: boolean;
+  date_publication?: string;
   created_at: string;
   updated_at: string;
 }
@@ -37,18 +43,23 @@ export type CategorieActualite =
   | "annonce"
   | "general";
 
-// Types pour les documents juridiques
+// Types pour les documents juridiques (Bibliothèque)
 export interface Document {
   id: string;
   titre: string;
   description?: string;
+  resume?: string;
+  auteur?: string;
+  nombre_pages?: number;
   type: TypeDocument;
   categorie: CategorieDocument;
   fichier_url: string;
+  image_couverture_url?: string;
   taille_fichier?: number;
   date_publication: string;
   annee: number;
   publie: boolean;
+  telechargements: number;
   created_at: string;
   updated_at: string;
 }
@@ -63,7 +74,9 @@ export type CategorieDocument =
   | "circulaire"
   | "note"
   | "formulaire"
-  | "rapport";
+  | "rapport"
+  | "livre"
+  | "guide";
 
 // Types pour les messages de contact
 export interface ContactMessage {
@@ -96,12 +109,24 @@ export interface Personnel {
   titre: string;
   fonction: string;
   departement: string;
+  equipe: EquipeType;
+  bio?: string;
   photo_url?: string;
   email?: string;
   telephone?: string;
+  linkedin?: string;
   ordre: number;
   actif: boolean;
+  created_at: string;
+  updated_at: string;
 }
+
+export type EquipeType =
+  | "direction"
+  | "cadres"
+  | "technique"
+  | "administratif"
+  | "autre";
 
 // Types pour les services
 export interface Service {
@@ -142,4 +167,71 @@ export interface ChiffreCle {
   suffixe?: string;
   prefixe?: string;
   description?: string;
+}
+
+// Types pour les paramètres du site
+export interface SiteSetting {
+  id: string;
+  cle: string;
+  valeur: string;
+  description?: string;
+  type: "text" | "image" | "json" | "html" | "number";
+  created_at: string;
+  updated_at: string;
+}
+
+// Types pour le contenu des pages
+export interface PageContent {
+  id: string;
+  page: string;
+  section: string;
+  titre?: string;
+  contenu?: string;
+  image_url?: string;
+  ordre: number;
+  actif: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+// Types utilitaires pour les formulaires
+export interface ActualiteFormData {
+  titre: string;
+  contenu: string;
+  extrait: string;
+  image_url?: string;
+  galerie_images: string[];
+  videos_youtube: string[];
+  categorie: CategorieActualite;
+  publie: boolean;
+  a_la_une: boolean;
+}
+
+export interface DocumentFormData {
+  titre: string;
+  description?: string;
+  resume?: string;
+  auteur?: string;
+  nombre_pages?: number;
+  type: TypeDocument;
+  categorie: CategorieDocument;
+  fichier_url: string;
+  image_couverture_url?: string;
+  annee: number;
+  publie: boolean;
+}
+
+export interface PersonnelFormData {
+  nom_complet: string;
+  titre: string;
+  fonction: string;
+  departement: string;
+  equipe: EquipeType;
+  bio?: string;
+  photo_url?: string;
+  email?: string;
+  telephone?: string;
+  linkedin?: string;
+  ordre: number;
+  actif: boolean;
 }

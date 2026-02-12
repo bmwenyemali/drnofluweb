@@ -19,6 +19,7 @@ import {
   BarChart3,
   FolderOpen,
   HelpCircle,
+  UserCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -47,6 +48,11 @@ const ADMIN_NAV = [
     label: "Documents",
     href: "/admin/documents",
     icon: FolderOpen,
+  },
+  {
+    label: "Personnel",
+    href: "/admin/personnel",
+    icon: UserCircle,
   },
   {
     label: "Utilisateurs",
