@@ -430,3 +430,37 @@ INSERT INTO bon_a_savoir (titre, contenu, type) VALUES
     ('Nouveau guichet unique', 'Un guichet unique est disponible pour faciliter vos démarches administratives.', 'astuce'),
     ('Pénalités de retard', 'Tout retard de paiement entraîne des pénalités de 10% par mois de retard.', 'alerte')
 ON CONFLICT DO NOTHING;
+
+-- ============================================================================
+-- USER ACCOUNTS - To be created through Supabase Auth
+-- ============================================================================
+-- Make sure to create these users in Supabase Dashboard > Authentication > Users
+-- 
+-- ADMIN USER:
+--   Email: bienvenu.mubangu@gmail.com
+--   Password: Pnmls@si12345
+--   Role: admin
+--   
+--   After creation via Auth, run:
+--   UPDATE profiles SET nom_complet = 'Bienvenu Mubangu', role = 'admin' 
+--   WHERE email = 'bienvenu.mubangu@gmail.com';
+--
+-- EDITOR USER:
+--   Email: mumwenye@gmail.com
+--   Password: Pnmls@si12345
+--   Role: editeur
+--   
+--   After creation via Auth, run:
+--   UPDATE profiles SET nom_complet = 'Mumwenye', role = 'editeur' 
+--   WHERE email = 'mumwenye@gmail.com';
+--
+-- ============================================================================
+-- Alternative: Insert directly if users already exist in auth.users
+-- Uncomment and update UUIDs after creating users in Supabase Auth
+-- ============================================================================
+-- INSERT INTO profiles (id, email, nom_complet, role) VALUES
+--     ('UUID-FROM-AUTH-ADMIN', 'bienvenu.mubangu@gmail.com', 'Bienvenu Mubangu', 'admin'),
+--     ('UUID-FROM-AUTH-EDITOR', 'mumwenye@gmail.com', 'Mumwenye', 'editeur')
+-- ON CONFLICT (id) DO UPDATE SET 
+--     nom_complet = EXCLUDED.nom_complet, 
+--     role = EXCLUDED.role;

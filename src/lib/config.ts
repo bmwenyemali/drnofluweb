@@ -126,15 +126,15 @@ export const DIRECTION_INFO = {
 // Navigation principale
 export const MAIN_NAV: NavItem[] = [
   {
-    label: "À Propos",
+    label: "L'Institution",
     href: "/a-propos",
     children: [
-      { label: "Mission & Vision", href: "/a-propos#mission" },
-      { label: "Historique", href: "/a-propos#historique" },
-      { label: "Valeurs", href: "/a-propos#valeurs" },
+      { label: "À Propos", href: "/a-propos" },
+      { label: "Direction", href: "/direction" },
+      { label: "Structure", href: "/structure" },
+      { label: "Contact", href: "/contact" },
     ],
   },
-  { label: "Direction", href: "/direction" },
   {
     label: "Services",
     href: "/services",
@@ -145,11 +145,9 @@ export const MAIN_NAV: NavItem[] = [
     ],
   },
   { label: "Cadre Juridique", href: "/juridique" },
-  { label: "Structure", href: "/structure" },
   { label: "Cartographie", href: "/cartographie" },
   { label: "Actualités", href: "/actualites" },
   { label: "Bon à Savoir", href: "/bon-a-savoir" },
-  { label: "Contact", href: "/contact" },
 ];
 
 // Chiffres clés (valeurs fictives à mettre à jour)

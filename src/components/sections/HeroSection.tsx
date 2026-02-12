@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, FileText, Phone, Building2, Settings } from "lucide-react";
+import { ArrowRight, FileText, Phone, Building2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 
@@ -77,27 +77,20 @@ export function HeroSection() {
             </div>
 
             {/* Liens rapides */}
-            <div className="flex flex-wrap gap-6 pt-6 text-sm border-t border-white/20 mt-4">
+            <div className="flex flex-wrap gap-4 pt-6 text-sm border-t border-white/20 mt-4">
               <Link
                 href="/juridique"
-                className="flex items-center gap-2 text-white/80 hover:text-white transition-colors font-medium"
+                className="flex items-center gap-2 bg-white/20 backdrop-blur-sm text-white px-4 py-2 rounded-full hover:bg-white/30 transition-colors font-semibold shadow-lg"
               >
                 <FileText className="h-4 w-4" />
                 Cadre Juridique
               </Link>
               <Link
                 href="/structure"
-                className="flex items-center gap-2 text-white/80 hover:text-white transition-colors font-medium"
+                className="flex items-center gap-2 bg-white/20 backdrop-blur-sm text-white px-4 py-2 rounded-full hover:bg-white/30 transition-colors font-semibold shadow-lg"
               >
                 <Building2 className="h-4 w-4" />
                 Notre Structure
-              </Link>
-              <Link
-                href="/admin"
-                className="flex items-center gap-2 text-white/80 hover:text-white transition-colors font-medium"
-              >
-                <Settings className="h-4 w-4" />
-                Administration
               </Link>
             </div>
           </motion.div>
@@ -121,21 +114,6 @@ export function HeroSection() {
             </div>
           </motion.div>
         </div>
-      </div>
-
-      {/* Vague décorative en bas */}
-      <div className="absolute bottom-0 left-0 right-0 z-10">
-        <svg
-          viewBox="0 0 1440 100"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-          className="w-full h-auto"
-        >
-          <path
-            d="M0 50L48 45.8C96 41.7 192 33.3 288 33.3C384 33.3 480 41.7 576 50C672 58.3 768 66.7 864 62.5C960 58.3 1056 41.7 1152 35.4C1248 29.2 1344 33.3 1392 35.4L1440 37.5V100H1392C1344 100 1248 100 1152 100C1056 100 960 100 864 100C768 100 672 100 576 100C480 100 384 100 288 100C192 100 96 100 48 100H0V50Z"
-            fill="white"
-          />
-        </svg>
       </div>
     </section>
   );
