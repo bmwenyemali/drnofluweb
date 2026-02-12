@@ -4,6 +4,17 @@ import { useRef, useEffect, useState } from "react";
 import { motion, useInView } from "framer-motion";
 import { TrendingUp, Users, FolderOpen, Award } from "lucide-react";
 import { CHIFFRES_CLES } from "@/lib/config";
+import { createBrowserClient } from "@/lib/supabase";
+
+interface ChiffreCle {
+  id: string;
+  cle: string;
+  valeur: number;
+  label: string;
+  prefixe?: string;
+  suffixe?: string;
+  description?: string;
+}
 
 /**
  * Section Chiffres Clés avec animation de comptage
@@ -11,11 +22,40 @@ import { CHIFFRES_CLES } from "@/lib/config";
 export function ChiffresClesSection() {
   const ref = useRef<HTMLDivElement>(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
+  const [chiffres, setChiffres] = useState<ChiffreCle[]>([]);
+  const [loaded, setLoaded] = useState(false);
 
   const icons = [TrendingUp, Users, FolderOpen, Award];
 
+  useEffect(() => {
+    const fetchChiffres = async () => {
+      try {
+        const supabase = createBrowserClient();
+        const { data, error } = await supabase
+          .from("chiffres_cles")
+          .select("*")
+          .eq("actif", true)
+          .order("ordre", { ascending: true })
+          .limit(4);
+
+        if (!error && data && data.length > 0) {
+          setChiffres(data);
+        }
+      } catch (e) {
+        // Use fallback config
+      } finally {
+        setLoaded(true);
+      }
+    };
+
+    fetchChiffres();
+  }, []);
+
+  // Use database chiffres or fallback to config
+  const displayChiffres = chiffres.length > 0 ? chiffres : CHIFFRES_CLES;
+
   return (
-    <section className="py-16 bg-gradient-to-br from-primary-50 to-white">
+    <section className="py-16 bg-linear-to-br from-primary-50 to-white">
       <div className="container mx-auto px-4">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -35,11 +75,11 @@ export function ChiffresClesSection() {
           ref={ref}
           className="grid grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8"
         >
-          {CHIFFRES_CLES.map((chiffre, index) => {
+          {displayChiffres.map((chiffre, index) => {
             const Icon = icons[index % icons.length];
             return (
               <motion.div
-                key={index}
+                key={chiffre.cle || index}
                 initial={{ opacity: 0, y: 30 }}
                 animate={isInView ? { opacity: 1, y: 0 } : {}}
                 transition={{ duration: 0.5, delay: index * 0.1 }}

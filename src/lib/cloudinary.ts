@@ -18,28 +18,43 @@ export async function uploadToCloudinary(
   file: File,
   folder: string = "drnoflu",
 ): Promise<{ url: string; publicId: string }> {
+  // Check configuration
+  if (!CLOUDINARY_CONFIG.cloudName || CLOUDINARY_CONFIG.cloudName === "demo") {
+    throw new Error("Cloudinary non configuré. Vérifiez NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME dans .env.local");
+  }
+  if (!CLOUDINARY_CONFIG.uploadPreset || CLOUDINARY_CONFIG.uploadPreset === "ml_default") {
+    throw new Error("Upload preset non configuré. Vérifiez NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET dans .env.local");
+  }
+
   const formData = new FormData();
   formData.append("file", file);
   formData.append("upload_preset", CLOUDINARY_CONFIG.uploadPreset);
   formData.append("folder", folder);
 
-  const response = await fetch(
-    `https://api.cloudinary.com/v1_1/${CLOUDINARY_CONFIG.cloudName}/image/upload`,
-    {
-      method: "POST",
-      body: formData,
-    },
-  );
+  try {
+    const response = await fetch(
+      `https://api.cloudinary.com/v1_1/${CLOUDINARY_CONFIG.cloudName}/image/upload`,
+      {
+        method: "POST",
+        body: formData,
+      },
+    );
 
-  if (!response.ok) {
-    throw new Error("Erreur lors de l'upload de l'image");
+    const data = await response.json();
+
+    if (!response.ok) {
+      console.error("Cloudinary error:", data);
+      throw new Error(data.error?.message || `Erreur Cloudinary: ${response.status}`);
+    }
+
+    return {
+      url: data.secure_url,
+      publicId: data.public_id,
+    };
+  } catch (error: any) {
+    console.error("Upload error:", error);
+    throw new Error(error.message || "Erreur lors de l'upload de l'image");
   }
-
-  const data = await response.json();
-  return {
-    url: data.secure_url,
-    publicId: data.public_id,
-  };
 }
 
 /**
@@ -49,30 +64,44 @@ export async function uploadDocumentToCloudinary(
   file: File,
   folder: string = "drnoflu/documents",
 ): Promise<{ url: string; publicId: string; fileSize: number }> {
+  // Check configuration
+  if (!CLOUDINARY_CONFIG.cloudName || CLOUDINARY_CONFIG.cloudName === "demo") {
+    throw new Error("Cloudinary non configuré. Vérifiez NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME dans .env.local");
+  }
+  if (!CLOUDINARY_CONFIG.uploadPreset || CLOUDINARY_CONFIG.uploadPreset === "ml_default") {
+    throw new Error("Upload preset non configuré. Vérifiez NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET dans .env.local");
+  }
+
   const formData = new FormData();
   formData.append("file", file);
   formData.append("upload_preset", CLOUDINARY_CONFIG.uploadPreset);
   formData.append("folder", folder);
-  formData.append("resource_type", "raw");
 
-  const response = await fetch(
-    `https://api.cloudinary.com/v1_1/${CLOUDINARY_CONFIG.cloudName}/raw/upload`,
-    {
-      method: "POST",
-      body: formData,
-    },
-  );
+  try {
+    const response = await fetch(
+      `https://api.cloudinary.com/v1_1/${CLOUDINARY_CONFIG.cloudName}/auto/upload`,
+      {
+        method: "POST",
+        body: formData,
+      },
+    );
 
-  if (!response.ok) {
-    throw new Error("Erreur lors de l'upload du document");
+    const data = await response.json();
+
+    if (!response.ok) {
+      console.error("Cloudinary document error:", data);
+      throw new Error(data.error?.message || `Erreur Cloudinary: ${response.status}`);
+    }
+
+    return {
+      url: data.secure_url,
+      publicId: data.public_id,
+      fileSize: data.bytes || 0,
+    };
+  } catch (error: any) {
+    console.error("Document upload error:", error);
+    throw new Error(error.message || "Erreur lors de l'upload du document");
   }
-
-  const data = await response.json();
-  return {
-    url: data.secure_url,
-    publicId: data.public_id,
-    fileSize: data.bytes,
-  };
 }
 
 /**

@@ -228,7 +228,11 @@ export default async function ActualitesPage() {
                           >
                             <span>{cat.label}</span>
                             <Badge variant="secondary" className="text-xs">
-                              {actualites.filter((a: any) => a.categorie === cat.id).length}
+                              {
+                                actualites.filter(
+                                  (a: any) => a.categorie === cat.id,
+                                ).length
+                              }
                             </Badge>
                           </Link>
                         </li>
@@ -252,7 +256,9 @@ export default async function ActualitesPage() {
                               {actu.titre}
                             </p>
                             <p className="text-xs text-gray-500 mt-1">
-                              {new Date(actu.date_publication).toLocaleDateString("fr-FR")}
+                              {new Date(
+                                actu.date_publication,
+                              ).toLocaleDateString("fr-FR")}
                             </p>
                           </Link>
                         </li>

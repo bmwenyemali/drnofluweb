@@ -160,13 +160,18 @@ export interface NavItem {
 // Types pour les langues supportées
 export type Locale = "fr" | "en" | "sw" | "ln";
 
-// Types pour les chiffres clés
+// Types pour les chiffres clés (config fallback + database)
 export interface ChiffreCle {
+  id?: string;
+  cle?: string;
   label: string;
   valeur: number;
   suffixe?: string;
   prefixe?: string;
   description?: string;
+  ordre?: number;
+  actif?: boolean;
+  updated_at?: string;
 }
 
 // Types pour les paramètres du site
@@ -234,4 +239,15 @@ export interface PersonnelFormData {
   linkedin?: string;
   ordre: number;
   actif: boolean;
+}
+
+// Types pour les statistiques de recettes
+export interface StatistiqueRecette {
+  id: string;
+  annee: number;
+  mois?: number;
+  type_recette: string;
+  montant: number;
+  devise: "CDF" | "USD";
+  created_at: string;
 }
