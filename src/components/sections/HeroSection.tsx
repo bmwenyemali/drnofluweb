@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, FileText, Phone, Building2 } from "lucide-react";
+import { ArrowRight, FileText, Phone, Building2, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 
@@ -67,7 +67,7 @@ export function HeroSection() {
                 asChild
                 size="lg"
                 variant="outline"
-                className="border-white text-white hover:bg-white/10"
+                className="border-white text-white bg-white/10 hover:bg-white/20"
               >
                 <Link href="/contact">
                   <Phone className="mr-2 h-4 w-4" />
@@ -77,20 +77,27 @@ export function HeroSection() {
             </div>
 
             {/* Liens rapides */}
-            <div className="flex flex-wrap gap-6 pt-6 text-sm">
+            <div className="flex flex-wrap gap-6 pt-6 text-sm border-t border-white/20 mt-4">
               <Link
                 href="/juridique"
-                className="flex items-center gap-2 text-gray-300 hover:text-white transition-colors"
+                className="flex items-center gap-2 text-white/80 hover:text-white transition-colors font-medium"
               >
                 <FileText className="h-4 w-4" />
                 Cadre Juridique
               </Link>
               <Link
                 href="/structure"
-                className="flex items-center gap-2 text-gray-300 hover:text-white transition-colors"
+                className="flex items-center gap-2 text-white/80 hover:text-white transition-colors font-medium"
               >
                 <Building2 className="h-4 w-4" />
                 Notre Structure
+              </Link>
+              <Link
+                href="/admin"
+                className="flex items-center gap-2 text-white/80 hover:text-white transition-colors font-medium"
+              >
+                <Settings className="h-4 w-4" />
+                Administration
               </Link>
             </div>
           </motion.div>

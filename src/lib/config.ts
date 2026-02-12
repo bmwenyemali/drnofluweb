@@ -125,7 +125,6 @@ export const DIRECTION_INFO = {
 
 // Navigation principale
 export const MAIN_NAV: NavItem[] = [
-  { label: "Accueil", href: "/" },
   {
     label: "À Propos",
     href: "/a-propos",

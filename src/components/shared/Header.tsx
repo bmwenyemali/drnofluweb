@@ -78,20 +78,12 @@ export function Header() {
           {/* Logo */}
           <Link href="/" className="flex items-center gap-3">
             <Image
-              src="/images/logo1.png"
+              src="/images/logo2.png"
               alt="Logo DRNOFLU"
-              width={50}
-              height={50}
+              width={70}
+              height={70}
               className="h-12 w-auto"
             />
-            <div className="hidden sm:block">
-              <h1 className="text-lg font-bold text-primary-900 leading-tight">
-                DRNOFLU
-              </h1>
-              <p className="text-xs text-gray-600 leading-tight">
-                Direction des Recettes Non Fiscales
-              </p>
-            </div>
           </Link>
 
           {/* Navigation Desktop */}
