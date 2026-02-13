@@ -27,11 +27,11 @@ export function Footer() {
           <div className="space-y-4">
             <Link href="/" className="flex items-center gap-3">
               <Image
-                src="/images/logo2.png"
+                src="/images/logo1.png"
                 alt="Logo DRNOFLU"
                 width={50}
                 height={50}
-                className="h-12 w-auto brightness-0 invert"
+                className="h-12 w-auto"
               />
               <div>
                 <h2 className="text-lg font-bold">DRNOFLU</h2>

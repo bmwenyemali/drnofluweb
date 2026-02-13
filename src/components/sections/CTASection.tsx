@@ -50,7 +50,7 @@ export function CTASection() {
                 asChild
                 size="lg"
                 variant="outline"
-                className="border-white text-white hover:bg-white/10"
+                className="border-white text-white bg-white/10 hover:bg-white hover:text-primary-900"
               >
                 <Link href="/services">Explorer nos services</Link>
               </Button>
