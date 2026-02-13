@@ -1,5 +1,8 @@
-import { Metadata } from "next";
+"use client";
+
+import { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import {
   FileText,
   Download,
@@ -9,11 +12,13 @@ import {
   Scale,
   Gavel,
   ScrollText,
+  Eye,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Select,
   SelectContent,
@@ -21,62 +26,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-
-export const metadata: Metadata = {
-  title: "Cadre Juridique",
-  description:
-    "Consultez les textes légaux, ordonnances et arrêtés régissant les recettes non fiscales au Lualaba.",
-};
-
-// Données statiques des documents (à remplacer par Supabase)
-const documents = [
-  {
-    id: 1,
-    titre:
-      "Ordonnance-Loi n°XXX portant nomenclature des recettes non fiscales",
-    type: "ordonnance",
-    annee: 2020,
-    description:
-      "Texte de base définissant les types de recettes non fiscales applicables en RDC.",
-    fichier_url: "#",
-  },
-  {
-    id: 2,
-    titre: "Arrêté Provincial fixant les taux des recettes non fiscales",
-    type: "arrete",
-    annee: 2024,
-    description:
-      "Arrêté définissant les barèmes et taux applicables dans la province du Lualaba.",
-    fichier_url: "#",
-  },
-  {
-    id: 3,
-    titre: "Décret portant création de la DRNOFLU",
-    type: "decret",
-    annee: 2019,
-    description:
-      "Texte fondateur de la Direction des Recettes Non Fiscales du Lualaba.",
-    fichier_url: "#",
-  },
-  {
-    id: 4,
-    titre: "Circulaire sur les procédures de recouvrement",
-    type: "circulaire",
-    annee: 2023,
-    description:
-      "Instructions relatives aux procédures de recouvrement des recettes.",
-    fichier_url: "#",
-  },
-  {
-    id: 5,
-    titre: "Note de service - Délais de paiement",
-    type: "note",
-    annee: 2025,
-    description: "Note précisant les délais et modalités de paiement.",
-    fichier_url: "#",
-  },
-];
+import { createBrowserClient } from "@/lib/supabase";
+import { Document } from "@/lib/types";
 
 const typeIcons: Record<string, React.ComponentType<{ className?: string }>> = {
   ordonnance: Scale,
@@ -84,6 +35,11 @@ const typeIcons: Record<string, React.ComponentType<{ className?: string }>> = {
   decret: Book,
   circulaire: ScrollText,
   note: FileText,
+  loi: Scale,
+  formulaire: FileText,
+  rapport: Book,
+  livre: Book,
+  guide: FileText,
 };
 
 const typeLabels: Record<string, string> = {
@@ -95,12 +51,59 @@ const typeLabels: Record<string, string> = {
   loi: "Loi",
   formulaire: "Formulaire",
   rapport: "Rapport",
+  livre: "Livre",
+  guide: "Guide",
+};
+
+const typeColors: Record<string, string> = {
+  ordonnance: "bg-red-100 text-red-700 border-red-200",
+  arrete: "bg-blue-100 text-blue-700 border-blue-200",
+  decret: "bg-purple-100 text-purple-700 border-purple-200",
+  circulaire: "bg-orange-100 text-orange-700 border-orange-200",
+  note: "bg-gray-100 text-gray-700 border-gray-200",
+  loi: "bg-red-100 text-red-700 border-red-200",
+  formulaire: "bg-green-100 text-green-700 border-green-200",
+  rapport: "bg-indigo-100 text-indigo-700 border-indigo-200",
+  livre: "bg-amber-100 text-amber-700 border-amber-200",
+  guide: "bg-teal-100 text-teal-700 border-teal-200",
 };
 
 /**
  * Page Cadre Juridique - Bibliothèque de documents
  */
 export default function JuridiquePage() {
+  const [documents, setDocuments] = useState<Document[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [typeFilter, setTypeFilter] = useState("all");
+
+  useEffect(() => {
+    fetchDocuments();
+  }, []);
+
+  const fetchDocuments = async () => {
+    const supabase = createBrowserClient();
+    const { data, error } = await supabase
+      .from("documents")
+      .select("*")
+      .eq("publie", true)
+      .order("date_publication", { ascending: false });
+
+    if (!error && data) {
+      setDocuments(data);
+    }
+    setLoading(false);
+  };
+
+  // Filtrer les documents
+  const filteredDocuments = documents.filter((doc) => {
+    const matchesSearch =
+      doc.titre.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      doc.description?.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesType = typeFilter === "all" || doc.categorie === typeFilter;
+    return matchesSearch && matchesType;
+  });
+
   return (
     <>
       {/* Hero Banner */}
@@ -141,9 +144,11 @@ export default function JuridiquePage() {
                 <Input
                   placeholder="Rechercher un document..."
                   className="pl-10"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
                 />
               </div>
-              <Select defaultValue="all">
+              <Select value={typeFilter} onValueChange={setTypeFilter}>
                 <SelectTrigger className="w-[180px]">
                   <Filter className="h-4 w-4 mr-2" />
                   <SelectValue placeholder="Type" />
@@ -153,152 +158,150 @@ export default function JuridiquePage() {
                   <SelectItem value="ordonnance">Ordonnances</SelectItem>
                   <SelectItem value="arrete">Arrêtés</SelectItem>
                   <SelectItem value="decret">Décrets</SelectItem>
+                  <SelectItem value="loi">Lois</SelectItem>
                   <SelectItem value="circulaire">Circulaires</SelectItem>
                   <SelectItem value="note">Notes</SelectItem>
+                  <SelectItem value="formulaire">Formulaires</SelectItem>
+                  <SelectItem value="rapport">Rapports</SelectItem>
+                  <SelectItem value="livre">Livres</SelectItem>
+                  <SelectItem value="guide">Guides</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div className="flex items-center gap-2 text-sm text-gray-600">
-              <span>{documents.length} documents disponibles</span>
+              <span>{filteredDocuments.length} documents disponibles</span>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Liste des documents */}
+      {/* Grille de documents - Style A4 */}
       <section className="py-12 bg-white">
         <div className="container mx-auto px-4">
-          <Tabs defaultValue="tous" className="w-full">
-            <TabsList className="mb-8">
-              <TabsTrigger value="tous">Tous</TabsTrigger>
-              <TabsTrigger value="ordonnances">Ordonnances & Lois</TabsTrigger>
-              <TabsTrigger value="arretes">Arrêtés & Décrets</TabsTrigger>
-              <TabsTrigger value="circulaires">Circulaires & Notes</TabsTrigger>
-              <TabsTrigger value="formulaires" id="formulaires">
-                Formulaires
-              </TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="tous" className="space-y-4">
-              {documents.map((doc) => {
-                const Icon = typeIcons[doc.type] || FileText;
+          {loading ? (
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+              {Array.from({ length: 10 }).map((_, i) => (
+                <div key={i} className="space-y-3">
+                  <Skeleton className="aspect-[210/297] rounded-lg" />
+                  <Skeleton className="h-4 w-3/4" />
+                  <Skeleton className="h-3 w-1/2" />
+                </div>
+              ))}
+            </div>
+          ) : filteredDocuments.length === 0 ? (
+            <div className="text-center py-16">
+              <FileText className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+              <p className="text-gray-500 text-lg">Aucun document disponible</p>
+              <p className="text-gray-400 text-sm mt-2">
+                {searchQuery || typeFilter !== "all"
+                  ? "Essayez de modifier vos critères de recherche"
+                  : "Les documents seront ajoutés prochainement"}
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+              {filteredDocuments.map((doc) => {
+                const Icon = typeIcons[doc.categorie] || FileText;
                 return (
-                  <Card
-                    key={doc.id}
-                    className="hover:shadow-md transition-shadow"
-                  >
-                    <CardContent className="p-6">
-                      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                        <div className="flex items-start gap-4">
-                          <div className="p-3 bg-primary-100 rounded-xl flex-shrink-0">
-                            <Icon className="h-6 w-6 text-primary-600" />
-                          </div>
-                          <div>
-                            <div className="flex items-center gap-2 mb-1">
-                              <Badge variant="outline">
-                                {typeLabels[doc.type]}
-                              </Badge>
-                              <span className="text-sm text-gray-500">
-                                {doc.annee}
-                              </span>
-                            </div>
-                            <h3 className="font-semibold text-gray-900 mb-2">
-                              {doc.titre}
-                            </h3>
-                            <p className="text-sm text-gray-600">
-                              {doc.description}
-                            </p>
-                          </div>
+                  <div key={doc.id} className="group">
+                    {/* Document Card - A4 format */}
+                    <div className="relative aspect-[210/297] bg-white border-2 border-gray-200 rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-all duration-300 hover:border-primary-300 group-hover:scale-[1.02]">
+                      {/* Couverture ou placeholder */}
+                      {doc.image_couverture_url ? (
+                        <Image
+                          src={doc.image_couverture_url}
+                          alt={doc.titre}
+                          fill
+                          className="object-cover"
+                        />
+                      ) : (
+                        <div className="absolute inset-0 bg-gradient-to-br from-gray-50 to-gray-100 flex flex-col items-center justify-center p-4">
+                          <Icon className="h-12 w-12 text-gray-400 mb-3" />
+                          <p className="text-xs text-gray-500 text-center line-clamp-3 font-medium">
+                            {doc.titre}
+                          </p>
                         </div>
-                        <Button
-                          asChild
+                      )}
+
+                      {/* Badge type */}
+                      <div className="absolute top-2 left-2">
+                        <Badge
                           variant="outline"
-                          className="flex-shrink-0"
+                          className={`text-[10px] ${typeColors[doc.categorie] || "bg-gray-100 text-gray-700"}`}
+                        >
+                          {typeLabels[doc.categorie]}
+                        </Badge>
+                      </div>
+
+                      {/* Badge année */}
+                      <div className="absolute top-2 right-2">
+                        <Badge variant="secondary" className="text-[10px]">
+                          {doc.annee}
+                        </Badge>
+                      </div>
+
+                      {/* Overlay on hover */}
+                      <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
+                        <Button
+                          size="sm"
+                          variant="secondary"
+                          className="text-xs"
+                          asChild
                         >
                           <a
                             href={doc.fichier_url}
-                            download
                             target="_blank"
                             rel="noopener noreferrer"
                           >
-                            <Download className="mr-2 h-4 w-4" />
-                            Télécharger
+                            <Eye className="h-3 w-3 mr-1" />
+                            Voir
+                          </a>
+                        </Button>
+                        <Button size="sm" className="text-xs" asChild>
+                          <a href={doc.fichier_url} download>
+                            <Download className="h-3 w-3 mr-1" />
+                            PDF
                           </a>
                         </Button>
                       </div>
-                    </CardContent>
-                  </Card>
+
+                      {/* Pages indicator */}
+                      {doc.nombre_pages && (
+                        <div className="absolute bottom-2 right-2 bg-white/90 px-2 py-1 rounded text-[10px] text-gray-600">
+                          {doc.nombre_pages} pages
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Titre sous la carte */}
+                    <div className="mt-3">
+                      <h3 className="text-sm font-medium text-gray-900 line-clamp-2 leading-tight group-hover:text-primary-700 transition-colors">
+                        {doc.titre}
+                      </h3>
+                      {doc.auteur && (
+                        <p className="text-xs text-gray-500 mt-1">
+                          {doc.auteur}
+                        </p>
+                      )}
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className="text-xs text-gray-400">
+                          {new Date(doc.date_publication).toLocaleDateString(
+                            "fr-FR",
+                            { month: "short", year: "numeric" },
+                          )}
+                        </span>
+                        {doc.telechargements > 0 && (
+                          <span className="text-xs text-gray-400">
+                            • {doc.telechargements} téléchargements
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
                 );
               })}
-            </TabsContent>
-
-            <TabsContent value="ordonnances" className="space-y-4">
-              {documents
-                .filter((d) => ["ordonnance", "loi"].includes(d.type))
-                .map((doc) => {
-                  const Icon = typeIcons[doc.type] || FileText;
-                  return (
-                    <Card
-                      key={doc.id}
-                      className="hover:shadow-md transition-shadow"
-                    >
-                      <CardContent className="p-6">
-                        <div className="flex items-start gap-4">
-                          <div className="p-3 bg-primary-100 rounded-xl">
-                            <Icon className="h-6 w-6 text-primary-600" />
-                          </div>
-                          <div className="flex-1">
-                            <Badge variant="outline" className="mb-2">
-                              {typeLabels[doc.type]}
-                            </Badge>
-                            <h3 className="font-semibold">{doc.titre}</h3>
-                            <p className="text-sm text-gray-600 mt-1">
-                              {doc.description}
-                            </p>
-                          </div>
-                          <Button asChild variant="outline" size="sm">
-                            <a href={doc.fichier_url} download>
-                              <Download className="h-4 w-4" />
-                            </a>
-                          </Button>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  );
-                })}
-            </TabsContent>
-
-            <TabsContent value="arretes" className="space-y-4">
-              <p className="text-gray-600 text-center py-8">
-                Filtrage par arrêtés et décrets
-              </p>
-            </TabsContent>
-
-            <TabsContent value="circulaires" className="space-y-4">
-              <p className="text-gray-600 text-center py-8">
-                Filtrage par circulaires et notes
-              </p>
-            </TabsContent>
-
-            <TabsContent value="formulaires" className="space-y-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Formulaires Administratifs</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-gray-600 mb-4">
-                    Les formulaires nécessaires pour vos démarches seront
-                    disponibles ici en téléchargement.
-                  </p>
-                  <Button asChild variant="outline">
-                    <Link href="/contact">
-                      Demander un formulaire spécifique
-                    </Link>
-                  </Button>
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
+            </div>
+          )}
         </div>
       </section>
 
@@ -319,10 +322,6 @@ export default function JuridiquePage() {
                 consulter la version la plus récente.
               </p>
               <div className="flex flex-wrap gap-3">
-                <Button>
-                  <Download className="mr-2 h-4 w-4" />
-                  Télécharger le barème 2026
-                </Button>
                 <Button variant="outline" asChild>
                   <Link href="/contact">Demander clarification</Link>
                 </Button>

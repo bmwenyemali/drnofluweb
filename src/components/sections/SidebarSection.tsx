@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
@@ -7,38 +8,10 @@ import { Calendar, ArrowRight, ChevronRight } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { DIRECTION_INFO, CATEGORIES_ACTUALITES } from "@/lib/config";
-
-// Données statiques d'actualités (à remplacer par des données Supabase)
-const actualitesRecentes = [
-  {
-    id: 1,
-    titre: "Campagne de sensibilisation sur les recettes non fiscales",
-    extrait:
-      "La DRNOFLU lance une nouvelle campagne pour informer les contribuables sur leurs obligations...",
-    categorie: "communique",
-    date: "2026-02-10",
-    image: "/images/actualites/campagne.jpg",
-  },
-  {
-    id: 2,
-    titre: "Rapport annuel 2025 disponible",
-    extrait:
-      "Le rapport annuel de la DRNOFLU pour l'année 2025 est maintenant accessible au public...",
-    categorie: "rapport",
-    date: "2026-02-05",
-    image: "/images/actualites/rapport.jpg",
-  },
-  {
-    id: 3,
-    titre: "Nouvelle procédure de déclaration simplifiée",
-    extrait:
-      "Pour faciliter les démarches des contribuables, la DRNOFLU introduit une procédure simplifiée...",
-    categorie: "annonce",
-    date: "2026-01-28",
-    image: "/images/actualites/procedure.jpg",
-  },
-];
+import { createBrowserClient } from "@/lib/supabase";
+import { Actualite } from "@/lib/types";
 
 // Liens rapides
 const liensRapides = [
@@ -53,6 +26,28 @@ const liensRapides = [
  * Sidebar droite avec actualités et informations
  */
 export function SidebarSection() {
+  const [actualites, setActualites] = useState<Actualite[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchActualites();
+  }, []);
+
+  const fetchActualites = async () => {
+    const supabase = createBrowserClient();
+    const { data, error } = await supabase
+      .from("actualites")
+      .select("*")
+      .eq("publie", true)
+      .order("date_publication", { ascending: false })
+      .limit(3);
+
+    if (!error && data) {
+      setActualites(data);
+    }
+    setLoading(false);
+  };
+
   return (
     <section className="py-16 bg-gray-50">
       <div className="container mx-auto px-4">
@@ -78,66 +73,98 @@ export function SidebarSection() {
             </motion.div>
 
             <div className="space-y-4">
-              {actualitesRecentes.map((actu, index) => {
-                const categorie = CATEGORIES_ACTUALITES.find(
-                  (c) => c.id === actu.categorie,
-                );
-                return (
-                  <motion.div
-                    key={actu.id}
-                    initial={{ opacity: 0, x: -20 }}
-                    whileInView={{ opacity: 1, x: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ delay: index * 0.1 }}
-                  >
-                    <Card className="overflow-hidden hover:shadow-md transition-shadow">
-                      <CardContent className="p-0">
-                        <div className="flex flex-col sm:flex-row">
-                          <div className="sm:w-48 h-32 sm:h-auto bg-gray-200 relative flex-shrink-0">
-                            <div className="absolute inset-0 bg-primary-200 flex items-center justify-center">
-                              <span className="text-primary-600 text-sm">
-                                Image
-                              </span>
+              {loading ? (
+                // Skeleton loaders
+                Array.from({ length: 3 }).map((_, i) => (
+                  <Card key={i} className="overflow-hidden">
+                    <CardContent className="p-0">
+                      <div className="flex flex-col sm:flex-row">
+                        <Skeleton className="sm:w-48 h-32" />
+                        <div className="p-4 flex-1 space-y-3">
+                          <Skeleton className="h-4 w-24" />
+                          <Skeleton className="h-5 w-full" />
+                          <Skeleton className="h-4 w-3/4" />
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))
+              ) : actualites.length === 0 ? (
+                <Card className="p-8 text-center">
+                  <p className="text-gray-500">
+                    Aucune actualité pour le moment
+                  </p>
+                </Card>
+              ) : (
+                actualites.map((actu, index) => {
+                  const categorie = CATEGORIES_ACTUALITES.find(
+                    (c) => c.id === actu.categorie,
+                  );
+                  return (
+                    <motion.div
+                      key={actu.id}
+                      initial={{ opacity: 0, x: -20 }}
+                      whileInView={{ opacity: 1, x: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ delay: index * 0.1 }}
+                    >
+                      <Card className="overflow-hidden hover:shadow-md transition-shadow">
+                        <CardContent className="p-0">
+                          <div className="flex flex-col sm:flex-row">
+                            <div className="sm:w-48 h-32 sm:h-auto bg-gray-200 relative flex-shrink-0">
+                              {actu.image_url ? (
+                                <Image
+                                  src={actu.image_url}
+                                  alt={actu.titre}
+                                  fill
+                                  className="object-cover"
+                                />
+                              ) : (
+                                <div className="absolute inset-0 bg-primary-200 flex items-center justify-center">
+                                  <span className="text-primary-600 text-sm">
+                                    Image
+                                  </span>
+                                </div>
+                              )}
                             </div>
-                          </div>
-                          <div className="p-4 flex-1">
-                            <div className="flex items-center gap-2 mb-2">
-                              <Badge
-                                variant="secondary"
-                                className="text-xs bg-primary-100 text-primary-700"
-                              >
-                                {categorie?.label || "Actualité"}
-                              </Badge>
-                              <span className="text-xs text-gray-400 flex items-center gap-1">
-                                <Calendar className="h-3 w-3" />
-                                {new Date(actu.date).toLocaleDateString(
-                                  "fr-FR",
-                                  {
+                            <div className="p-4 flex-1">
+                              <div className="flex items-center gap-2 mb-2">
+                                <Badge
+                                  variant="secondary"
+                                  className="text-xs bg-primary-100 text-primary-700"
+                                >
+                                  {categorie?.label || "Actualité"}
+                                </Badge>
+                                <span className="text-xs text-gray-400 flex items-center gap-1">
+                                  <Calendar className="h-3 w-3" />
+                                  {new Date(
+                                    actu.date_publication || actu.created_at,
+                                  ).toLocaleDateString("fr-FR", {
                                     day: "numeric",
                                     month: "short",
                                     year: "numeric",
-                                  },
-                                )}
-                              </span>
+                                  })}
+                                </span>
+                              </div>
+                              <Link
+                                href={`/actualites/${actu.slug}`}
+                                className="block"
+                              >
+                                <h3 className="font-semibold text-gray-900 hover:text-primary-700 transition-colors line-clamp-2 mb-2">
+                                  {actu.titre}
+                                </h3>
+                              </Link>
+                              <p className="text-sm text-gray-600 line-clamp-2">
+                                {actu.extrait}
+                              </p>
                             </div>
-                            <Link
-                              href={`/actualites/${actu.id}`}
-                              className="block"
-                            >
-                              <h3 className="font-semibold text-gray-900 hover:text-primary-700 transition-colors line-clamp-2 mb-2">
-                                {actu.titre}
-                              </h3>
-                            </Link>
-                            <p className="text-sm text-gray-600 line-clamp-2">
-                              {actu.extrait}
-                            </p>
                           </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </motion.div>
-                );
-              })}
+                        </CardContent>
+                      </Card>
+                    </motion.div>
+                  );
+                })
+              )}
             </div>
           </div>
 

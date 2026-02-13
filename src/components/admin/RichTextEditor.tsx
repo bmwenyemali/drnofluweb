@@ -217,11 +217,15 @@ export function RichTextEditor({
 
   // Simple markdown to HTML converter
   const renderMarkdown = (text: string): string => {
-    let html = text
-      // Escape HTML
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
+    // Process images FIRST (before links since ![alt](url) contains [alt](url))
+    let html = text.replace(
+      /!\[([^\]]*)\]\(([^)]+)\)/g,
+      '<img src="$2" alt="$1" class="rounded-lg my-4 max-w-full" />',
+    );
+
+    // Then process the rest
+    html = html
+      // Escape HTML (but not in img tags we just created)
       // Headers
       .replace(
         /^### (.*$)/gim,
@@ -239,19 +243,14 @@ export function RichTextEditor({
       .replace(/\*\*\*(.*?)\*\*\*/g, "<strong><em>$1</em></strong>")
       .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
       .replace(/\*(.*?)\*/g, "<em>$1</em>")
-      // Links
+      // Links (but not img src which we already processed)
       .replace(
         /\[([^\]]+)\]\(([^)]+)\)/g,
         '<a href="$2" class="text-primary-600 hover:underline" target="_blank" rel="noopener">$1</a>',
       )
-      // Images
-      .replace(
-        /!\[([^\]]*)\]\(([^)]+)\)/g,
-        '<img src="$2" alt="$1" class="rounded-lg my-4 max-w-full" />',
-      )
       // Blockquotes
       .replace(
-        /^&gt; (.*$)/gim,
+        /^> (.*$)/gim,
         '<blockquote class="border-l-4 border-primary-500 pl-4 my-4 italic text-gray-600">$1</blockquote>',
       )
       // Lists

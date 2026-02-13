@@ -11,12 +11,15 @@ import {
   Layers,
   Filter,
   Info,
+  Map,
+  Globe,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
 import { MAPBOX_CONFIG, MAP_POINTS } from "@/lib/config";
 
 // Import dynamique pour éviter les erreurs SSR avec Mapbox
@@ -39,6 +42,8 @@ export default function CartographiePage() {
   const [showRecettes, setShowRecettes] = useState(true);
   const [showProjets, setShowProjets] = useState(true);
   const [showMines, setShowMines] = useState(true);
+  const [showBoundaries, setShowBoundaries] = useState(true);
+  const [showTerritories, setShowTerritories] = useState(true);
 
   const legendItems = [
     {
@@ -74,6 +79,13 @@ export default function CartographiePage() {
     },
   ];
 
+  const territoryTypes = [
+    { type: "ville", label: "Villes", color: "#1e3a8a" },
+    { type: "territoire", label: "Territoires", color: "#16a34a" },
+    { type: "chefferie", label: "Chefferies", color: "#f59e0b" },
+    { type: "secteur", label: "Secteurs", color: "#dc2626" },
+  ];
+
   return (
     <>
       {/* Hero Banner */}
@@ -106,62 +118,109 @@ export default function CartographiePage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="flex items-center space-x-3">
-                    <Checkbox
-                      id="recettes"
-                      checked={showRecettes}
-                      onCheckedChange={(checked) =>
-                        setShowRecettes(checked as boolean)
-                      }
-                    />
-                    <Label
-                      htmlFor="recettes"
-                      className="flex items-center gap-2 cursor-pointer"
-                    >
-                      <span
-                        className="w-3 h-3 rounded-full"
-                        style={{ backgroundColor: "#16a34a" }}
+                  {/* Couches de base */}
+                  <div className="space-y-3">
+                    <p className="text-xs font-medium text-gray-500 uppercase">
+                      Couches de base
+                    </p>
+                    <div className="flex items-center space-x-3">
+                      <Checkbox
+                        id="boundaries"
+                        checked={showBoundaries}
+                        onCheckedChange={(checked) =>
+                          setShowBoundaries(checked as boolean)
+                        }
                       />
-                      Points de Recettes
-                    </Label>
+                      <Label
+                        htmlFor="boundaries"
+                        className="flex items-center gap-2 cursor-pointer"
+                      >
+                        <Globe className="h-4 w-4 text-primary-600" />
+                        Limites du Lualaba
+                      </Label>
+                    </div>
+                    <div className="flex items-center space-x-3">
+                      <Checkbox
+                        id="territories"
+                        checked={showTerritories}
+                        onCheckedChange={(checked) =>
+                          setShowTerritories(checked as boolean)
+                        }
+                      />
+                      <Label
+                        htmlFor="territories"
+                        className="flex items-center gap-2 cursor-pointer"
+                      >
+                        <Map className="h-4 w-4 text-gray-600" />
+                        Territoires
+                      </Label>
+                    </div>
                   </div>
-                  <div className="flex items-center space-x-3">
-                    <Checkbox
-                      id="projets"
-                      checked={showProjets}
-                      onCheckedChange={(checked) =>
-                        setShowProjets(checked as boolean)
-                      }
-                    />
-                    <Label
-                      htmlFor="projets"
-                      className="flex items-center gap-2 cursor-pointer"
-                    >
-                      <span
-                        className="w-3 h-3 rounded-full"
-                        style={{ backgroundColor: "#f59e0b" }}
+
+                  <Separator />
+
+                  {/* Points d'intérêt */}
+                  <div className="space-y-3">
+                    <p className="text-xs font-medium text-gray-500 uppercase">
+                      Points d'intérêt
+                    </p>
+                    <div className="flex items-center space-x-3">
+                      <Checkbox
+                        id="recettes"
+                        checked={showRecettes}
+                        onCheckedChange={(checked) =>
+                          setShowRecettes(checked as boolean)
+                        }
                       />
-                      Projets
-                    </Label>
-                  </div>
-                  <div className="flex items-center space-x-3">
-                    <Checkbox
-                      id="mines"
-                      checked={showMines}
-                      onCheckedChange={(checked) =>
-                        setShowMines(checked as boolean)
-                      }
-                    />
-                    <Label
-                      htmlFor="mines"
-                      className="flex items-center gap-2 cursor-pointer"
-                    >
-                      <span
-                        className="w-3 h-3 rounded-full"
-                        style={{ backgroundColor: "#dc2626" }}
+                      <Label
+                        htmlFor="recettes"
+                        className="flex items-center gap-2 cursor-pointer"
+                      >
+                        <span
+                          className="w-3 h-3 rounded-full"
+                          style={{ backgroundColor: "#16a34a" }}
+                        />
+                        Points de Recettes
+                      </Label>
+                    </div>
+                    <div className="flex items-center space-x-3">
+                      <Checkbox
+                        id="projets"
+                        checked={showProjets}
+                        onCheckedChange={(checked) =>
+                          setShowProjets(checked as boolean)
+                        }
                       />
-                      Zones Minières
-                    </Label>
+                      <Label
+                        htmlFor="projets"
+                        className="flex items-center gap-2 cursor-pointer"
+                      >
+                        <span
+                          className="w-3 h-3 rounded-full"
+                          style={{ backgroundColor: "#f59e0b" }}
+                        />
+                        Projets
+                      </Label>
+                    </div>
+                    <div className="flex items-center space-x-3">
+                      <Checkbox
+                        id="mines"
+                        checked={showMines}
+                        onCheckedChange={(checked) =>
+                          setShowMines(checked as boolean)
+                        }
+                      />
+                      <Label
+                        htmlFor="mines"
+                        className="flex items-center gap-2 cursor-pointer"
+                      >
+                        <span
+                          className="w-3 h-3 rounded-full"
+                          style={{ backgroundColor: "#dc2626" }}
+                        />
+                        Zones Minières
+                      </Label>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
@@ -175,34 +234,62 @@ export default function CartographiePage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  {legendItems.map((item) => (
-                    <div
-                      key={item.type}
-                      className="flex items-start gap-3 p-2 rounded-lg hover:bg-gray-50"
-                    >
-                      <div
-                        className="w-8 h-8 rounded-full flex items-center justify-center text-white shrink-0"
-                        style={{ backgroundColor: item.color }}
-                      >
-                        <item.icon className="h-4 w-4" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                          <span className="font-medium text-sm">
-                            {item.label}
+                  {/* Légende Territoires */}
+                  <div className="space-y-2">
+                    <p className="text-xs font-medium text-gray-500 uppercase">
+                      Territoires
+                    </p>
+                    <div className="grid grid-cols-2 gap-2">
+                      {territoryTypes.map((t) => (
+                        <div key={t.type} className="flex items-center gap-2">
+                          <span
+                            className="w-3 h-3 rounded-full"
+                            style={{ backgroundColor: t.color }}
+                          />
+                          <span className="text-xs text-gray-600">
+                            {t.label}
                           </span>
-                          {item.count && (
-                            <Badge variant="secondary" className="text-xs">
-                              {item.count}
-                            </Badge>
-                          )}
                         </div>
-                        <p className="text-xs text-gray-500">
-                          {item.description}
-                        </p>
-                      </div>
+                      ))}
                     </div>
-                  ))}
+                  </div>
+
+                  <Separator />
+
+                  {/* Légende Points */}
+                  <div className="space-y-2">
+                    <p className="text-xs font-medium text-gray-500 uppercase">
+                      Points d'intérêt
+                    </p>
+                    {legendItems.map((item) => (
+                      <div
+                        key={item.type}
+                        className="flex items-start gap-3 p-2 rounded-lg hover:bg-gray-50"
+                      >
+                        <div
+                          className="w-8 h-8 rounded-full flex items-center justify-center text-white shrink-0"
+                          style={{ backgroundColor: item.color }}
+                        >
+                          <item.icon className="h-4 w-4" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <span className="font-medium text-sm">
+                              {item.label}
+                            </span>
+                            {item.count && (
+                              <Badge variant="secondary" className="text-xs">
+                                {item.count}
+                              </Badge>
+                            )}
+                          </div>
+                          <p className="text-xs text-gray-500">
+                            {item.description}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </CardContent>
               </Card>
 
@@ -237,6 +324,8 @@ export default function CartographiePage() {
                     showRecettes={showRecettes}
                     showProjets={showProjets}
                     showMines={showMines}
+                    showBoundaries={showBoundaries}
+                    showTerritories={showTerritories}
                     height="600px"
                   />
                 </CardContent>

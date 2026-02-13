@@ -120,7 +120,14 @@ function extractYoutubeId(url: string): string | null {
 
 // Simple markdown to HTML (same as RichTextEditor)
 function renderMarkdown(text: string): string {
-  let html = text
+  // Process images FIRST (before links since ![alt](url) contains [alt](url))
+  let html = text.replace(
+    /!\[([^\]]*)\]\(([^)]+)\)/g,
+    '<img src="$2" alt="$1" class="rounded-lg my-6 max-w-full" />',
+  );
+
+  // Then process the rest
+  html = html
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
@@ -136,10 +143,6 @@ function renderMarkdown(text: string): string {
     .replace(
       /\[([^\]]+)\]\(([^)]+)\)/g,
       '<a href="$2" class="text-primary-600 hover:underline" target="_blank" rel="noopener">$1</a>',
-    )
-    .replace(
-      /!\[([^\]]*)\]\(([^)]+)\)/g,
-      '<img src="$2" alt="$1" class="rounded-lg my-6 max-w-full" />',
     )
     .replace(
       /^&gt; (.*$)/gim,
