@@ -126,7 +126,9 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     const getUserRole = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (user) {
         const { data: profile } = await supabase
           .from("profiles")
@@ -185,8 +187,8 @@ export default function AdminDashboard() {
   ];
 
   // Filter cards based on user role
-  const statCards = allStatCards.filter(card => 
-    !card.roles || card.roles.includes(userRole)
+  const statCards = allStatCards.filter(
+    (card) => !card.roles || card.roles.includes(userRole),
   );
 
   const formatDate = (dateString: string) => {

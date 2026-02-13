@@ -185,3 +185,62 @@
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
 }
+
+/* Mobile-friendly global fixes */
+@layer base {
+  /* Prevent any element from causing horizontal overflow */
+  img,
+  video,
+  iframe,
+  embed,
+  object {
+    @apply max-w-full h-auto;
+  }
+
+  /* Fix long words and URLs on mobile */
+  p,
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6,
+  li,
+  td,
+  th,
+  span,
+  a {
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+  }
+
+  /* Ensure cards and containers don't overflow */
+  .container {
+    @apply max-w-full;
+  }
+}
+
+/* Mobile card fixes */
+@media (max-width: 640px) {
+  .card,
+  [class*="Card"] {
+    @apply overflow-hidden;
+  }
+
+  /* Ensure tables scroll on mobile */
+  table {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+
+  /* Fix flex overflow issues */
+  .flex {
+    min-width: 0;
+  }
+
+  /* Fix grid items overflow */
+  .grid > * {
+    min-width: 0;
+  }
+}
