@@ -144,10 +144,34 @@
 @layer base {
   * {
     @apply border-border outline-ring/50;
-    @apply border-border outline-ring/50;
   }
+  html,
   body {
-    @apply bg-background text-foreground;
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground overflow-x-hidden;
+    scroll-behavior: smooth;
   }
+}
+
+/* Mobile-friendly prose content */
+.prose {
+  @apply break-words;
+}
+
+.prose img {
+  @apply max-w-full h-auto;
+}
+
+.prose table {
+  @apply block overflow-x-auto whitespace-nowrap;
+}
+
+.prose pre {
+  @apply overflow-x-auto;
+}
+
+/* Ensure images and iframes don't overflow */
+.prose iframe,
+.prose video,
+.prose embed {
+  @apply max-w-full;
 }

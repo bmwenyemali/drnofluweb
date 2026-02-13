@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import {
   Plus,
   Search,
@@ -13,6 +14,7 @@ import {
   Calendar,
   CheckCircle,
   XCircle,
+  ImageIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -236,7 +238,8 @@ export default function ActualitesPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-[400px]">Titre</TableHead>
+                  <TableHead className="w-[80px]">Image</TableHead>
+                  <TableHead className="w-[350px]">Titre</TableHead>
                   <TableHead>Catégorie</TableHead>
                   <TableHead>Statut</TableHead>
                   <TableHead>Date</TableHead>
@@ -247,9 +250,27 @@ export default function ActualitesPage() {
                 {filteredActualites.map((actualite) => (
                   <TableRow key={actualite.id}>
                     <TableCell>
+                      <div className="w-16 h-12 rounded-md overflow-hidden bg-gray-100 relative">
+                        {actualite.image_url ? (
+                          <Image
+                            src={actualite.image_url}
+                            alt={actualite.titre}
+                            fill
+                            className="object-cover"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center">
+                            <ImageIcon className="h-5 w-5 text-gray-400" />
+                          </div>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell>
                       <div>
-                        <p className="font-medium">{actualite.titre}</p>
-                        <p className="text-sm text-gray-500 truncate max-w-[350px]">
+                        <p className="font-medium line-clamp-1">
+                          {actualite.titre}
+                        </p>
+                        <p className="text-sm text-gray-500 truncate max-w-[300px]">
                           {actualite.extrait}
                         </p>
                       </div>

@@ -5,6 +5,7 @@ import { motion, useInView } from "framer-motion";
 import { TrendingUp, Users, FolderOpen, Award } from "lucide-react";
 import { CHIFFRES_CLES } from "@/lib/config";
 import { createBrowserClient } from "@/lib/supabase";
+import { useTranslation } from "@/lib/i18n";
 
 interface ChiffreCle {
   id: string;
@@ -24,6 +25,7 @@ export function ChiffresClesSection() {
   const isInView = useInView(ref, { once: true, margin: "-100px" });
   const [chiffres, setChiffres] = useState<ChiffreCle[]>([]);
   const [loaded, setLoaded] = useState(false);
+  const { t } = useTranslation();
 
   const icons = [TrendingUp, Users, FolderOpen, Award];
 
@@ -64,10 +66,10 @@ export function ChiffresClesSection() {
           className="text-center mb-12"
         >
           <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-            DRNOFLU en Chiffres
+            {t("keyFigures", "title")}
           </h2>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Des résultats concrets au service du développement du Lualaba
+            {t("keyFigures", "subtitle")}
           </p>
         </motion.div>
 

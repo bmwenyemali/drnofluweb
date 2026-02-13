@@ -14,6 +14,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { MAIN_NAV, LOCALES, SITE_CONFIG } from "@/lib/config";
+import { useTranslation, Locale } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
 /**
@@ -22,12 +23,36 @@ import { cn } from "@/lib/utils";
  */
 export function Header() {
   const [isOpen, setIsOpen] = useState(false);
-  const [currentLocale, setCurrentLocale] = useState("fr");
+  const { locale, setLocale, t } = useTranslation();
   const pathname = usePathname();
 
   const isActive = (href: string) => {
     if (href === "/") return pathname === "/";
     return pathname.startsWith(href);
+  };
+
+  // Map nav paths to translation keys
+  const getNavLabel = (href: string, originalLabel: string) => {
+    const navMap: Record<
+      string,
+      keyof typeof import("@/lib/i18n/translations").translations.nav
+    > = {
+      "/": "home",
+      "/a-propos": "about",
+      "/services": "services",
+      "/actualites": "news",
+      "/contact": "contact",
+      "/juridique": "legal",
+      "/structure": "structure",
+      "/direction": "direction",
+      "/bon-a-savoir": "goodToKnow",
+      "/cartographie": "map",
+    };
+    const key = navMap[href];
+    if (key) {
+      return t("nav", key);
+    }
+    return originalLabel;
   };
 
   return (
@@ -49,21 +74,21 @@ export function Header() {
                   className="text-white hover:bg-white/10 h-7 px-2"
                 >
                   <Globe className="h-4 w-4 mr-1" />
-                  {LOCALES.find((l) => l.code === currentLocale)?.flag}
+                  {LOCALES.find((l) => l.code === locale)?.flag}
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                {LOCALES.map((locale) => (
+                {LOCALES.map((loc) => (
                   <DropdownMenuItem
-                    key={locale.code}
-                    onClick={() => setCurrentLocale(locale.code)}
+                    key={loc.code}
+                    onClick={() => setLocale(loc.code as Locale)}
                     className={cn(
                       "cursor-pointer",
-                      currentLocale === locale.code && "bg-accent",
+                      locale === loc.code && "bg-accent",
                     )}
                   >
-                    <span className="mr-2">{locale.flag}</span>
-                    {locale.label}
+                    <span className="mr-2">{loc.flag}</span>
+                    {loc.label}
                   </DropdownMenuItem>
                 ))}
               </DropdownMenuContent>
@@ -102,7 +127,7 @@ export function Header() {
                             : "text-gray-700 hover:text-primary-700 hover:bg-primary-50",
                         )}
                       >
-                        {item.label}
+                        {getNavLabel(item.href, item.label)}
                         <ChevronDown className="ml-1 h-3 w-3" />
                       </Button>
                     </DropdownMenuTrigger>
@@ -110,7 +135,7 @@ export function Header() {
                       {item.children.map((child) => (
                         <DropdownMenuItem key={child.href} asChild>
                           <Link href={child.href} className="w-full">
-                            {child.label}
+                            {getNavLabel(child.href, child.label)}
                           </Link>
                         </DropdownMenuItem>
                       ))}
@@ -126,7 +151,7 @@ export function Header() {
                         : "text-gray-700 hover:text-primary-700 hover:bg-primary-50",
                     )}
                   >
-                    {item.label}
+                    {getNavLabel(item.href, item.label)}
                   </Link>
                 )}
               </div>
@@ -180,7 +205,7 @@ export function Header() {
                               : "text-gray-700 hover:text-primary-700 hover:bg-primary-50",
                           )}
                         >
-                          {item.label}
+                          {getNavLabel(item.href, item.label)}
                         </Link>
                         {item.children && (
                           <div className="pl-4 mt-1 space-y-1">
@@ -191,7 +216,7 @@ export function Header() {
                                 onClick={() => setIsOpen(false)}
                                 className="block px-3 py-1.5 text-sm text-gray-600 hover:text-primary-700"
                               >
-                                {child.label}
+                                {getNavLabel(child.href, child.label)}
                               </Link>
                             ))}
                           </div>

@@ -5,12 +5,15 @@ import Link from "next/link";
 import { ArrowRight, FileText, Phone, Building2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
+import { useTranslation } from "@/lib/i18n";
 
 /**
  * Section Hero de la page d'accueil
  * Présentation visuelle principale avec image de fond
  */
 export function HeroSection() {
+  const { t } = useTranslation();
+
   return (
     <section className="relative min-h-[600px] lg:min-h-[700px] flex items-center">
       {/* Image de fond */}
@@ -37,18 +40,19 @@ export function HeroSection() {
           >
             <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-full px-4 py-2 text-sm">
               <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-              Province du Lualaba - RDC
+              {t("hero", "province")}
             </div>
 
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight">
-              Direction des Recettes
-              <span className="text-primary-300 block">Non Fiscales</span>
-              du Lualaba
+              {t("hero", "title1")}
+              <span className="text-primary-300 block">
+                {t("hero", "title2")}
+              </span>
+              {t("hero", "title3")}
             </h1>
 
             <p className="text-lg md:text-xl text-gray-200 max-w-xl leading-relaxed">
-              Au service de la mobilisation des ressources provinciales pour un
-              développement durable et équitable du Lualaba.
+              {t("hero", "subtitle")}
             </p>
 
             {/* Boutons d&apos;action */}
@@ -59,7 +63,7 @@ export function HeroSection() {
                 className="bg-white text-primary-900 hover:bg-gray-100"
               >
                 <Link href="/services">
-                  Nos Services
+                  {t("hero", "ourServices")}
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
               </Button>
@@ -71,7 +75,7 @@ export function HeroSection() {
               >
                 <Link href="/contact">
                   <Phone className="mr-2 h-4 w-4" />
-                  Nous Contacter
+                  {t("hero", "contactUs")}
                 </Link>
               </Button>
             </div>
@@ -83,14 +87,14 @@ export function HeroSection() {
                 className="flex items-center gap-2 bg-white/20 backdrop-blur-sm text-white px-4 py-2 rounded-full hover:bg-white/30 transition-colors font-semibold shadow-lg"
               >
                 <FileText className="h-4 w-4" />
-                Cadre Juridique
+                {t("hero", "legalFramework")}
               </Link>
               <Link
                 href="/structure"
                 className="flex items-center gap-2 bg-white/20 backdrop-blur-sm text-white px-4 py-2 rounded-full hover:bg-white/30 transition-colors font-semibold shadow-lg"
               >
                 <Building2 className="h-4 w-4" />
-                Notre Structure
+                {t("hero", "ourStructure")}
               </Link>
             </div>
           </motion.div>

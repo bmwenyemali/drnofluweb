@@ -12,6 +12,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { DIRECTION_INFO, CATEGORIES_ACTUALITES } from "@/lib/config";
 import { createBrowserClient } from "@/lib/supabase";
 import { Actualite } from "@/lib/types";
+import { useTranslation } from "@/lib/i18n";
 
 // Liens rapides
 const liensRapides = [
@@ -28,6 +29,7 @@ const liensRapides = [
 export function SidebarSection() {
   const [actualites, setActualites] = useState<Actualite[]>([]);
   const [loading, setLoading] = useState(true);
+  const { t } = useTranslation();
 
   useEffect(() => {
     fetchActualites();
@@ -61,13 +63,13 @@ export function SidebarSection() {
               className="flex items-center justify-between mb-6"
             >
               <h2 className="text-2xl font-bold text-gray-900">
-                Actualités Récentes
+                {t("news", "title")}
               </h2>
               <Link
                 href="/actualites"
                 className="text-primary-600 hover:text-primary-700 font-medium text-sm flex items-center gap-1"
               >
-                Voir tout
+                {t("news", "viewAll")}
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </motion.div>

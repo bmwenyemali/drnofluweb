@@ -526,6 +526,30 @@ export const TYPES_RECETTES = [
     description:
       "Redevances et taxes liées à l'exploitation minière industrielle et artisanale",
     icone: "Pickaxe",
+    image: "/images/services/mine.webp",
+    details: {
+      intro:
+        "Le secteur minier représente la principale source de recettes non fiscales de la province du Lualaba, riche en cuivre et cobalt.",
+      obligations: [
+        "Redevance minière annuelle",
+        "Taxe sur le transport de minerais",
+        "Droit de passage aux barrières minières",
+        "Taxe sur les engins miniers",
+        "Contribution au développement communautaire",
+      ],
+      procedures: [
+        "Déclaration trimestrielle de production",
+        "Paiement au guichet DRNOFLU ou par virement bancaire",
+        "Obtention du reçu de paiement",
+        "Conservation des justificatifs pour contrôle",
+      ],
+      documents: [
+        "Permis d'exploitation minière valide",
+        "Registre de production",
+        "Relevé de transport des minerais",
+        "Attestation d'enregistrement fiscal",
+      ],
+    },
   },
   {
     id: "environnement",
@@ -533,30 +557,211 @@ export const TYPES_RECETTES = [
     description:
       "Taxes environnementales et redevances pour la protection de l'écosystème",
     icone: "Leaf",
+    image: "/images/services/environment.jpeg",
+    details: {
+      intro:
+        "Les taxes environnementales contribuent à la protection et à la restauration de l'écosystème provincial, particulièrement impacté par les activités minières.",
+      obligations: [
+        "Taxe de pollution",
+        "Redevance de gestion des déchets",
+        "Taxe forestière",
+        "Contribution pour la réhabilitation des sites",
+        "Permis environnemental",
+      ],
+      procedures: [
+        "Étude d'impact environnemental",
+        "Déclaration des émissions et rejets",
+        "Paiement trimestriel des taxes",
+        "Rapport annuel environnemental",
+      ],
+      documents: [
+        "Certificat environnemental",
+        "Plan de gestion environnementale",
+        "Rapport d'audit environnemental",
+        "Registre des déchets produits",
+      ],
+    },
   },
   {
     id: "transport",
     nom: "Transport",
     description: "Redevances liées au transport routier, ferroviaire et aérien",
     icone: "Truck",
+    image: "/images/services/transport.jpg",
+    details: {
+      intro:
+        "Le secteur des transports contribue significativement aux recettes provinciales à travers diverses taxes sur les véhicules et le transport de marchandises.",
+      obligations: [
+        "Taxe de circulation",
+        "Vignette provinciale",
+        "Taxe de stationnement",
+        "Redevance de transport public",
+        "Taxe sur le transport de marchandises",
+      ],
+      procedures: [
+        "Immatriculation du véhicule",
+        "Paiement annuel de la vignette",
+        "Déclaration pour le transport commercial",
+        "Renouvellement des autorisations",
+      ],
+      documents: [
+        "Carte grise du véhicule",
+        "Permis de conduire valide",
+        "Assurance véhicule",
+        "Autorisation de transport commercial",
+      ],
+    },
   },
   {
     id: "commerce",
     nom: "Commerce",
     description: "Taxes sur les activités commerciales et les marchés",
     icone: "Store",
+    image: "/images/services/commerce.jpg",
+    details: {
+      intro:
+        "Les activités commerciales dans la province du Lualaba sont soumises à diverses taxes qui contribuent au développement économique local.",
+      obligations: [
+        "Patente commerciale",
+        "Taxe de marché",
+        "Droit d'étalage",
+        "Taxe sur la publicité",
+        "Licence d'exploitation commerciale",
+      ],
+      procedures: [
+        "Enregistrement de l'activité commerciale",
+        "Paiement de la patente annuelle",
+        "Déclaration mensuelle pour les marchés",
+        "Renouvellement des licences",
+      ],
+      documents: [
+        "Registre de commerce (RCCM)",
+        "Numéro d'identification fiscale",
+        "Attestation de localisation",
+        "Contrat de bail commercial",
+      ],
+    },
   },
   {
     id: "foncier",
     nom: "Foncier",
     description: "Redevances foncières et droits de superficie",
     icone: "Building",
+    image: "/images/services/taxefonc.jpg",
+    details: {
+      intro:
+        "Les taxes foncières s'appliquent à la propriété et à l'occupation des terrains dans la province du Lualaba.",
+      obligations: [
+        "Impôt foncier",
+        "Taxe sur la superficie",
+        "Droit de mutation foncière",
+        "Redevance d'occupation",
+        "Taxe d'urbanisme",
+      ],
+      procedures: [
+        "Déclaration de propriété",
+        "Évaluation de la valeur foncière",
+        "Paiement annuel de l'impôt",
+        "Enregistrement des mutations",
+      ],
+      documents: [
+        "Titre foncier ou certificat d'enregistrement",
+        "Plan cadastral",
+        "Attestation de propriété",
+        "Permis de construire (si applicable)",
+      ],
+    },
   },
   {
     id: "administratif",
     nom: "Services Administratifs",
     description: "Frais administratifs et droits de chancellerie",
     icone: "FileText",
+    image: "/images/services/adminstration.jpeg",
+    details: {
+      intro:
+        "Les frais administratifs couvrent les services rendus par l'administration provinciale pour la délivrance de documents officiels.",
+      obligations: [
+        "Frais de légalisation",
+        "Droits de chancellerie",
+        "Frais de délivrance d'attestations",
+        "Taxes sur les actes administratifs",
+        "Frais de certification",
+      ],
+      procedures: [
+        "Dépôt de la demande",
+        "Paiement des frais requis",
+        "Traitement du dossier",
+        "Retrait du document",
+      ],
+      documents: [
+        "Pièce d'identité valide",
+        "Formulaire de demande complété",
+        "Documents justificatifs requis",
+        "Reçu de paiement",
+      ],
+    },
+  },
+  {
+    id: "agricole",
+    nom: "Secteur Agricole",
+    description: "Taxes sur les activités agricoles et l'élevage",
+    icone: "Wheat",
+    image: "/images/services/agriculture.webp",
+    details: {
+      intro:
+        "Le secteur agricole bénéficie d'un régime fiscal adapté pour encourager la production alimentaire tout en contribuant aux recettes provinciales.",
+      obligations: [
+        "Taxe sur le bétail",
+        "Redevance sur les produits agricoles",
+        "Taxe de marché agricole",
+        "Permis de pêche et chasse",
+        "Taxe sur les exploitations agricoles",
+      ],
+      procedures: [
+        "Déclaration de l'activité agricole",
+        "Paiement des taxes de marché",
+        "Obtention des permis requis",
+        "Déclaration annuelle des revenus agricoles",
+      ],
+      documents: [
+        "Attestation d'exploitant agricole",
+        "Titre foncier ou bail agricole",
+        "Registre du bétail",
+        "Permis de commercialisation",
+      ],
+    },
+  },
+  {
+    id: "sante",
+    nom: "Santé Publique",
+    description:
+      "Contributions liées aux établissements de santé et à l'hygiène",
+    icone: "Heart",
+    image: "/images/services/sante.avif",
+    details: {
+      intro:
+        "Les taxes de santé publique contribuent au financement des infrastructures sanitaires et au contrôle de l'hygiène publique.",
+      obligations: [
+        "Taxe d'agrément sanitaire",
+        "Redevance d'hygiène",
+        "Taxe sur les établissements de santé privés",
+        "Contribution au fonds de santé",
+        "Permis d'exploitation sanitaire",
+      ],
+      procedures: [
+        "Demande d'agrément sanitaire",
+        "Inspection des locaux",
+        "Paiement des redevances",
+        "Renouvellement annuel des permis",
+      ],
+      documents: [
+        "Diplômes du personnel médical",
+        "Plan des locaux",
+        "Attestation d'hygiène",
+        "Registre des activités médicales",
+      ],
+    },
   },
 ];
 

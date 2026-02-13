@@ -1,5 +1,6 @@
 import { Metadata } from "next";
 import Link from "next/link";
+import Image from "next/image";
 import {
   Pickaxe,
   Leaf,
@@ -12,6 +13,8 @@ import {
   ClipboardList,
   CreditCard,
   HelpCircle,
+  Wheat,
+  Heart,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -38,6 +41,8 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   Store,
   Building,
   FileText,
+  Wheat,
+  Heart,
 };
 
 /**
@@ -76,20 +81,39 @@ export default function ServicesPage() {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {TYPES_RECETTES.map((recette) => {
               const Icon = iconMap[recette.icone] || FileText;
               return (
                 <Card
                   key={recette.id}
-                  className="hover:shadow-lg transition-all duration-300 group"
+                  className="hover:shadow-lg transition-all duration-300 group overflow-hidden"
                   id={recette.id}
                 >
-                  <CardHeader>
-                    <div className="flex items-start gap-4">
-                      <div className="p-3 bg-primary-100 rounded-xl group-hover:bg-primary-600 transition-colors">
-                        <Icon className="h-6 w-6 text-primary-600 group-hover:text-white transition-colors" />
+                  {/* Image */}
+                  {recette.image && (
+                    <div className="relative h-32 bg-gray-100">
+                      <Image
+                        src={recette.image}
+                        alt={recette.nom}
+                        fill
+                        className="object-cover group-hover:scale-105 transition-transform duration-300"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+                      <div className="absolute bottom-2 left-2">
+                        <div className="p-2 bg-white/90 backdrop-blur-sm rounded-lg">
+                          <Icon className="h-5 w-5 text-primary-600" />
+                        </div>
                       </div>
+                    </div>
+                  )}
+                  <CardHeader className="pb-2">
+                    <div className="flex items-start gap-4">
+                      {!recette.image && (
+                        <div className="p-3 bg-primary-100 rounded-xl group-hover:bg-primary-600 transition-colors">
+                          <Icon className="h-6 w-6 text-primary-600 group-hover:text-white transition-colors" />
+                        </div>
+                      )}
                       <div>
                         <CardTitle className="text-lg group-hover:text-primary-700 transition-colors">
                           {recette.nom}
@@ -98,7 +122,9 @@ export default function ServicesPage() {
                     </div>
                   </CardHeader>
                   <CardContent>
-                    <p className="text-gray-600 mb-4">{recette.description}</p>
+                    <p className="text-gray-600 mb-4 text-sm line-clamp-2">
+                      {recette.description}
+                    </p>
                     <Button
                       asChild
                       variant="outline"
@@ -134,7 +160,7 @@ export default function ServicesPage() {
           </div>
 
           <div className="max-w-4xl mx-auto">
-            <div className="grid md:grid-cols-4 gap-6">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
               {/* Étape 1 */}
               <div className="text-center">
                 <div className="relative">

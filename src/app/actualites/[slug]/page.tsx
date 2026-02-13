@@ -270,7 +270,7 @@ export default async function ActualiteDetailPage({ params }: PageProps) {
 
               {/* Contenu */}
               <div
-                className="prose prose-lg max-w-none prose-headings:text-gray-900 prose-p:text-gray-700 prose-a:text-primary-600"
+                className="prose prose-lg max-w-none prose-headings:text-gray-900 prose-p:text-gray-700 prose-a:text-primary-600 overflow-x-hidden"
                 dangerouslySetInnerHTML={{
                   __html: renderMarkdown(actualite.contenu),
                 }}
@@ -331,11 +331,11 @@ export default async function ActualiteDetailPage({ params }: PageProps) {
 
               {/* Share buttons */}
               <div className="mt-12 pt-8 border-t">
-                <div className="flex items-center gap-4">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
                   <span className="text-sm font-medium text-gray-500">
                     Partager:
                   </span>
-                  <div className="flex gap-2">
+                  <div className="flex flex-wrap gap-2">
                     <Button variant="outline" size="sm" asChild>
                       <a
                         href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(
