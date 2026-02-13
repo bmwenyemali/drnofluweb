@@ -235,8 +235,8 @@ export default function AdminLayout({
               )}
             </Button>
 
-            {/* Desktop Navigation - Scrollable */}
-            <nav className="hidden lg:flex items-center gap-1 overflow-x-auto max-w-[calc(100vw-400px)] scrollbar-hide">
+            {/* Desktop Navigation */}
+            <nav className="hidden lg:flex items-center gap-0.5 flex-wrap">
               {filteredNav.map((item) => (
                 <Link
                   key={item.href}
@@ -255,32 +255,33 @@ export default function AdminLayout({
             </nav>
 
             {/* User Menu */}
-            <div className="hidden lg:flex items-center gap-3">
-              {/* Notifications */}
-              <Button
-                variant="ghost"
-                size="icon"
-                className="relative text-white hover:bg-white/10"
+            <div className="hidden lg:flex items-center gap-2">
+              {/* Notifications - Link to messages */}
+              <Link
+                href="/admin/messages"
+                className="relative p-2 rounded-md text-white hover:bg-white/10"
+                title="Messages"
               >
                 <Bell className="h-5 w-5" />
                 <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full" />
-              </Button>
-
-              {/* Retour au site */}
-              <Link
-                href="/"
-                className="flex items-center gap-2 px-3 py-2 rounded-md text-sm text-white/80 hover:bg-white/10 hover:text-white"
-              >
-                <HelpCircle className="h-4 w-4" />
-                <span>Site</span>
               </Link>
 
-              {/* User Dropdown */}
+              {/* Retour au site - Icon only */}
+              <Link
+                href="/"
+                className="p-2 rounded-md text-white/80 hover:bg-white/10 hover:text-white"
+                title="Retour au site"
+              >
+                <HelpCircle className="h-5 w-5" />
+              </Link>
+
+              {/* User Dropdown - Avatar only */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button
                     variant="ghost"
-                    className="flex items-center gap-2 text-white hover:bg-white/10"
+                    size="icon"
+                    className="text-white hover:bg-white/10"
                   >
                     <Avatar className="h-8 w-8">
                       <AvatarImage src={user?.profile?.avatar_url} />
@@ -288,9 +289,6 @@ export default function AdminLayout({
                         {user?.profile?.nom_complet?.charAt(0) || "A"}
                       </AvatarFallback>
                     </Avatar>
-                    <span className="hidden xl:inline text-sm font-medium">
-                      {user?.profile?.nom_complet || "Admin"}
-                    </span>
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56">

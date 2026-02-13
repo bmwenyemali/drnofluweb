@@ -121,7 +121,27 @@ export default function AdminDashboard() {
     fetchDashboardData();
   }, [supabase]);
 
-  const statCards = [
+  // Get user role
+  const [userRole, setUserRole] = useState<string>("");
+
+  useEffect(() => {
+    const getUserRole = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("role")
+          .eq("id", user.id)
+          .single();
+        if (profile) {
+          setUserRole(profile.role);
+        }
+      }
+    };
+    getUserRole();
+  }, [supabase]);
+
+  const allStatCards = [
     {
       title: "Actualités",
       value: stats.actualites,
@@ -130,6 +150,7 @@ export default function AdminDashboard() {
       href: "/admin/actualites",
       trend: "+12%",
       trendUp: true,
+      roles: ["admin", "editeur"],
     },
     {
       title: "Utilisateurs",
@@ -139,6 +160,7 @@ export default function AdminDashboard() {
       href: "/admin/utilisateurs",
       trend: "+5%",
       trendUp: true,
+      roles: ["admin"], // Only admin can see users
     },
     {
       title: "Messages",
@@ -150,6 +172,7 @@ export default function AdminDashboard() {
         stats.messagesNonLus > 0
           ? `${stats.messagesNonLus} non lus`
           : undefined,
+      roles: ["admin", "editeur"],
     },
     {
       title: "Documents",
@@ -157,8 +180,14 @@ export default function AdminDashboard() {
       icon: FileText,
       color: "bg-orange-500",
       href: "/admin/documents",
+      roles: ["admin", "editeur"],
     },
   ];
+
+  // Filter cards based on user role
+  const statCards = allStatCards.filter(card => 
+    !card.roles || card.roles.includes(userRole)
+  );
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("fr-FR", {
