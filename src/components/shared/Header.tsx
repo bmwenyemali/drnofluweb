@@ -107,11 +107,6 @@ export function Header() {
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="start" className="w-48">
-                      <DropdownMenuItem asChild>
-                        <Link href={item.href} className="w-full">
-                          Voir tout
-                        </Link>
-                      </DropdownMenuItem>
                       {item.children.map((child) => (
                         <DropdownMenuItem key={child.href} asChild>
                           <Link href={child.href} className="w-full">

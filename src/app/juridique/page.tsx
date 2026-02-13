@@ -13,6 +13,8 @@ import {
   Gavel,
   ScrollText,
   Eye,
+  X,
+  ExternalLink,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -26,6 +28,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { createBrowserClient } from "@/lib/supabase";
 import { Document } from "@/lib/types";
 
@@ -76,6 +84,10 @@ export default function JuridiquePage() {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [typeFilter, setTypeFilter] = useState("all");
+  const [selectedDocument, setSelectedDocument] = useState<Document | null>(
+    null,
+  );
+  const [viewerOpen, setViewerOpen] = useState(false);
 
   useEffect(() => {
     fetchDocuments();
@@ -103,6 +115,31 @@ export default function JuridiquePage() {
     const matchesType = typeFilter === "all" || doc.categorie === typeFilter;
     return matchesSearch && matchesType;
   });
+
+  // Ouvrir le visualiseur PDF
+  const handleViewDocument = (doc: Document) => {
+    setSelectedDocument(doc);
+    setViewerOpen(true);
+  };
+
+  // Télécharger le document
+  const handleDownloadDocument = async (doc: Document) => {
+    try {
+      const response = await fetch(doc.fichier_url);
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${doc.titre.replace(/[^a-zA-Z0-9]/g, "_")}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch {
+      // Fallback: open in new tab
+      window.open(doc.fichier_url, "_blank");
+    }
+  };
 
   return (
     <>
@@ -246,22 +283,18 @@ export default function JuridiquePage() {
                           size="sm"
                           variant="secondary"
                           className="text-xs"
-                          asChild
+                          onClick={() => handleViewDocument(doc)}
                         >
-                          <a
-                            href={doc.fichier_url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                          >
-                            <Eye className="h-3 w-3 mr-1" />
-                            Voir
-                          </a>
+                          <Eye className="h-3 w-3 mr-1" />
+                          Voir
                         </Button>
-                        <Button size="sm" className="text-xs" asChild>
-                          <a href={doc.fichier_url} download>
-                            <Download className="h-3 w-3 mr-1" />
-                            PDF
-                          </a>
+                        <Button
+                          size="sm"
+                          className="text-xs"
+                          onClick={() => handleDownloadDocument(doc)}
+                        >
+                          <Download className="h-3 w-3 mr-1" />
+                          PDF
                         </Button>
                       </div>
 
@@ -330,6 +363,51 @@ export default function JuridiquePage() {
           </Card>
         </div>
       </section>
+
+      {/* PDF Viewer Dialog */}
+      <Dialog open={viewerOpen} onOpenChange={setViewerOpen}>
+        <DialogContent className="max-w-5xl h-[90vh] flex flex-col p-0">
+          <DialogHeader className="p-4 border-b flex-shrink-0">
+            <div className="flex items-center justify-between">
+              <DialogTitle className="text-lg pr-8">
+                {selectedDocument?.titre}
+              </DialogTitle>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() =>
+                    selectedDocument && handleDownloadDocument(selectedDocument)
+                  }
+                >
+                  <Download className="h-4 w-4 mr-1" />
+                  Télécharger
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() =>
+                    selectedDocument &&
+                    window.open(selectedDocument.fichier_url, "_blank")
+                  }
+                >
+                  <ExternalLink className="h-4 w-4 mr-1" />
+                  Ouvrir
+                </Button>
+              </div>
+            </div>
+          </DialogHeader>
+          <div className="flex-1 bg-gray-100 overflow-hidden">
+            {selectedDocument && (
+              <iframe
+                src={`https://docs.google.com/viewer?url=${encodeURIComponent(selectedDocument.fichier_url)}&embedded=true`}
+                className="w-full h-full border-0"
+                title={selectedDocument.titre}
+              />
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

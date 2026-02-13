@@ -153,7 +153,7 @@ export default function MapView({
   showRecettes = false,
   showProjets = false,
   showMines = false,
-  showBoundaries = true,
+  showBoundaries = false,
   showTerritories = true,
   height = "400px",
   className = "",

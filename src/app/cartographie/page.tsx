@@ -12,7 +12,12 @@ import {
   Filter,
   Info,
   Map,
-  Globe,
+  ChevronDown,
+  ChevronUp,
+  X,
+  Users,
+  TrendingUp,
+  MapPinned,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -20,7 +25,21 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { MAPBOX_CONFIG, MAP_POINTS } from "@/lib/config";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { MAPBOX_CONFIG, MAP_POINTS, TERRITORY_DATA } from "@/lib/config";
 
 // Import dynamique pour éviter les erreurs SSR avec Mapbox
 const MapView = dynamic(() => import("@/components/map/MapView"), {
@@ -35,6 +54,24 @@ const MapView = dynamic(() => import("@/components/map/MapView"), {
   ),
 });
 
+// Types pour les territoires
+interface TerritoryInfo {
+  id: string;
+  nom: string;
+  type: string;
+  population: string;
+  superficie: string;
+  coordinates: [number, number];
+  recettes2024: number;
+  recettes2025: number;
+  pointsRecettes: number;
+  projetsEnCours: number;
+  projetsTermines: number;
+  zonesMinieres: number;
+  principauxMinerais: string[];
+  description: string;
+}
+
 /**
  * Page Cartographie - Visualisation des points d'intérêt du Lualaba
  */
@@ -42,8 +79,11 @@ export default function CartographiePage() {
   const [showRecettes, setShowRecettes] = useState(true);
   const [showProjets, setShowProjets] = useState(true);
   const [showMines, setShowMines] = useState(true);
-  const [showBoundaries, setShowBoundaries] = useState(true);
   const [showTerritories, setShowTerritories] = useState(true);
+  const [selectedTerritory, setSelectedTerritory] =
+    useState<TerritoryInfo | null>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [tableExpanded, setTableExpanded] = useState(true);
 
   const legendItems = [
     {
@@ -86,6 +126,43 @@ export default function CartographiePage() {
     { type: "secteur", label: "Secteurs", color: "#dc2626" },
   ];
 
+  // Formater le montant en USD
+  const formatUSD = (amount: number) => {
+    if (amount >= 1000000) {
+      return `${(amount / 1000000).toFixed(1)}M`;
+    }
+    if (amount >= 1000) {
+      return `${(amount / 1000).toFixed(0)}K`;
+    }
+    return amount.toString();
+  };
+
+  // Calculer le total des recettes
+  const totalRecettes2025 = TERRITORY_DATA.reduce(
+    (sum, t) => sum + t.recettes2025,
+    0,
+  );
+
+  // Ouvrir le dialog avec les détails du territoire
+  const handleTerritoryClick = (territory: TerritoryInfo) => {
+    setSelectedTerritory(territory);
+    setDialogOpen(true);
+  };
+
+  // Obtenir les projets pour un territoire
+  const getProjectsForTerritory = (territoryName: string) => {
+    return MAP_POINTS.projets.filter(
+      (p) => "territoire" in p && p.territoire === territoryName,
+    );
+  };
+
+  // Obtenir les mines pour un territoire
+  const getMinesForTerritory = (territoryName: string) => {
+    return MAP_POINTS.mines.filter(
+      (m) => "territoire" in m && m.territoire === territoryName,
+    );
+  };
+
   return (
     <>
       {/* Hero Banner */}
@@ -123,22 +200,6 @@ export default function CartographiePage() {
                     <p className="text-xs font-medium text-gray-500 uppercase">
                       Couches de base
                     </p>
-                    <div className="flex items-center space-x-3">
-                      <Checkbox
-                        id="boundaries"
-                        checked={showBoundaries}
-                        onCheckedChange={(checked) =>
-                          setShowBoundaries(checked as boolean)
-                        }
-                      />
-                      <Label
-                        htmlFor="boundaries"
-                        className="flex items-center gap-2 cursor-pointer"
-                      >
-                        <Globe className="h-4 w-4 text-primary-600" />
-                        Limites du Lualaba
-                      </Label>
-                    </div>
                     <div className="flex items-center space-x-3">
                       <Checkbox
                         id="territories"
@@ -324,7 +385,7 @@ export default function CartographiePage() {
                     showRecettes={showRecettes}
                     showProjets={showProjets}
                     showMines={showMines}
-                    showBoundaries={showBoundaries}
+                    showBoundaries={false}
                     showTerritories={showTerritories}
                     height="600px"
                   />
@@ -334,6 +395,341 @@ export default function CartographiePage() {
           </div>
         </div>
       </section>
+
+      {/* Tableau des données par territoire */}
+      <section className="py-12 bg-white">
+        <div className="container mx-auto px-4">
+          <Card>
+            <CardHeader
+              className="cursor-pointer"
+              onClick={() => setTableExpanded(!tableExpanded)}
+            >
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center gap-2">
+                  <MapPinned className="h-5 w-5" />
+                  Données par Territoire
+                </CardTitle>
+                <div className="flex items-center gap-4">
+                  <Badge variant="secondary" className="text-sm">
+                    Total Recettes 2025: ${formatUSD(totalRecettes2025)} USD
+                  </Badge>
+                  {tableExpanded ? (
+                    <ChevronUp className="h-5 w-5 text-gray-500" />
+                  ) : (
+                    <ChevronDown className="h-5 w-5 text-gray-500" />
+                  )}
+                </div>
+              </div>
+            </CardHeader>
+            {tableExpanded && (
+              <CardContent className="p-0">
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="bg-gray-50">
+                        <TableHead className="font-semibold">
+                          Territoire
+                        </TableHead>
+                        <TableHead className="font-semibold">Type</TableHead>
+                        <TableHead className="font-semibold text-right">
+                          Population
+                        </TableHead>
+                        <TableHead className="font-semibold text-right">
+                          Recettes 2025
+                        </TableHead>
+                        <TableHead className="font-semibold text-center">
+                          Points Recettes
+                        </TableHead>
+                        <TableHead className="font-semibold text-center">
+                          Projets
+                        </TableHead>
+                        <TableHead className="font-semibold text-center">
+                          Zones Minières
+                        </TableHead>
+                        <TableHead className="font-semibold">
+                          Minerais
+                        </TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {TERRITORY_DATA.map((territory) => (
+                        <TableRow
+                          key={territory.id}
+                          className="cursor-pointer hover:bg-primary-50 transition-colors"
+                          onClick={() =>
+                            handleTerritoryClick(territory as TerritoryInfo)
+                          }
+                        >
+                          <TableCell className="font-medium">
+                            <div className="flex items-center gap-2">
+                              <span
+                                className="w-3 h-3 rounded-full"
+                                style={{
+                                  backgroundColor:
+                                    territoryTypes.find(
+                                      (t) => t.type === territory.type,
+                                    )?.color || "#6b7280",
+                                }}
+                              />
+                              {territory.nom}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <Badge
+                              variant="outline"
+                              className="text-xs capitalize"
+                            >
+                              {territory.type}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-right">
+                            {territory.population}
+                          </TableCell>
+                          <TableCell className="text-right font-medium text-green-700">
+                            ${formatUSD(territory.recettes2025)}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            {territory.pointsRecettes > 0 ? (
+                              <Badge variant="secondary">
+                                {territory.pointsRecettes}
+                              </Badge>
+                            ) : (
+                              <span className="text-gray-400">-</span>
+                            )}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            <div className="flex items-center justify-center gap-1">
+                              {territory.projetsEnCours > 0 && (
+                                <Badge className="bg-orange-100 text-orange-700 text-xs">
+                                  {territory.projetsEnCours} en cours
+                                </Badge>
+                              )}
+                              {territory.projetsTermines > 0 && (
+                                <Badge className="bg-green-100 text-green-700 text-xs">
+                                  {territory.projetsTermines} terminé
+                                </Badge>
+                              )}
+                              {territory.projetsEnCours === 0 &&
+                                territory.projetsTermines === 0 && (
+                                  <span className="text-gray-400">-</span>
+                                )}
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-center">
+                            {territory.zonesMinieres > 0 ? (
+                              <Badge variant="destructive" className="text-xs">
+                                {territory.zonesMinieres}
+                              </Badge>
+                            ) : (
+                              <span className="text-gray-400">-</span>
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            {territory.principauxMinerais.length > 0 ? (
+                              <div className="flex flex-wrap gap-1">
+                                {territory.principauxMinerais.map((m) => (
+                                  <Badge
+                                    key={m}
+                                    variant="outline"
+                                    className="text-xs"
+                                  >
+                                    {m}
+                                  </Badge>
+                                ))}
+                              </div>
+                            ) : (
+                              <span className="text-gray-400">-</span>
+                            )}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+                <div className="p-4 bg-gray-50 border-t text-sm text-gray-600">
+                  <Info className="h-4 w-4 inline mr-2" />
+                  Cliquez sur une ligne pour voir plus de détails sur le
+                  territoire.
+                </div>
+              </CardContent>
+            )}
+          </Card>
+        </div>
+      </section>
+
+      {/* Dialog détails territoire */}
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-3">
+              <span
+                className="w-4 h-4 rounded-full"
+                style={{
+                  backgroundColor:
+                    territoryTypes.find(
+                      (t) => t.type === selectedTerritory?.type,
+                    )?.color || "#6b7280",
+                }}
+              />
+              {selectedTerritory?.nom}
+              <Badge variant="outline" className="ml-2 capitalize">
+                {selectedTerritory?.type}
+              </Badge>
+            </DialogTitle>
+          </DialogHeader>
+
+          {selectedTerritory && (
+            <div className="space-y-6">
+              {/* Description */}
+              <p className="text-gray-600">{selectedTerritory.description}</p>
+
+              {/* Stats principales */}
+              <div className="grid grid-cols-3 gap-4">
+                <div className="bg-gray-50 rounded-lg p-4 text-center">
+                  <Users className="h-6 w-6 mx-auto text-blue-600 mb-2" />
+                  <p className="text-lg font-bold">
+                    {selectedTerritory.population}
+                  </p>
+                  <p className="text-xs text-gray-500">Population</p>
+                </div>
+                <div className="bg-gray-50 rounded-lg p-4 text-center">
+                  <MapPinned className="h-6 w-6 mx-auto text-green-600 mb-2" />
+                  <p className="text-lg font-bold">
+                    {selectedTerritory.superficie}
+                  </p>
+                  <p className="text-xs text-gray-500">Superficie</p>
+                </div>
+                <div className="bg-gray-50 rounded-lg p-4 text-center">
+                  <TrendingUp className="h-6 w-6 mx-auto text-orange-600 mb-2" />
+                  <p className="text-lg font-bold text-green-700">
+                    ${formatUSD(selectedTerritory.recettes2025)}
+                  </p>
+                  <p className="text-xs text-gray-500">Recettes 2025</p>
+                </div>
+              </div>
+
+              {/* Évolution recettes */}
+              <div className="bg-green-50 rounded-lg p-4">
+                <h4 className="font-medium text-green-800 mb-2 flex items-center gap-2">
+                  <Coins className="h-4 w-4" />
+                  Évolution des Recettes
+                </h4>
+                <div className="flex items-center gap-4">
+                  <div>
+                    <p className="text-sm text-gray-600">
+                      2024: ${formatUSD(selectedTerritory.recettes2024)} USD
+                    </p>
+                    <p className="text-sm font-medium text-green-700">
+                      2025: ${formatUSD(selectedTerritory.recettes2025)} USD
+                    </p>
+                  </div>
+                  <Badge className="bg-green-100 text-green-700">
+                    +
+                    {(
+                      ((selectedTerritory.recettes2025 -
+                        selectedTerritory.recettes2024) /
+                        selectedTerritory.recettes2024) *
+                      100
+                    ).toFixed(0)}
+                    %
+                  </Badge>
+                </div>
+              </div>
+
+              {/* Projets */}
+              {(selectedTerritory.projetsEnCours > 0 ||
+                selectedTerritory.projetsTermines > 0) && (
+                <div>
+                  <h4 className="font-medium mb-3 flex items-center gap-2">
+                    <HardHat className="h-4 w-4 text-orange-600" />
+                    Projets (
+                    {selectedTerritory.projetsEnCours +
+                      selectedTerritory.projetsTermines}
+                    )
+                  </h4>
+                  <div className="space-y-2">
+                    {getProjectsForTerritory(selectedTerritory.nom).map(
+                      (projet) => (
+                        <div
+                          key={projet.id}
+                          className="flex items-center justify-between bg-gray-50 p-3 rounded-lg"
+                        >
+                          <div>
+                            <p className="font-medium text-sm">{projet.name}</p>
+                            <p className="text-xs text-gray-500">
+                              {projet.description}
+                            </p>
+                          </div>
+                          <div className="text-right">
+                            {"budget" in projet && (
+                              <p className="text-sm font-medium">
+                                {projet.budget as string}
+                              </p>
+                            )}
+                            {"statut" in projet && (
+                              <Badge
+                                variant="outline"
+                                className={`text-xs ${projet.statut === "Terminé" ? "bg-green-50 text-green-700" : projet.statut === "En cours" ? "bg-orange-50 text-orange-700" : "bg-blue-50 text-blue-700"}`}
+                              >
+                                {projet.statut as string}
+                              </Badge>
+                            )}
+                          </div>
+                        </div>
+                      ),
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Zones minières */}
+              {selectedTerritory.zonesMinieres > 0 && (
+                <div>
+                  <h4 className="font-medium mb-3 flex items-center gap-2">
+                    <Pickaxe className="h-4 w-4 text-red-600" />
+                    Zones Minières ({selectedTerritory.zonesMinieres})
+                  </h4>
+                  <div className="space-y-2">
+                    {getMinesForTerritory(selectedTerritory.nom).map((mine) => (
+                      <div
+                        key={mine.id}
+                        className="flex items-center justify-between bg-red-50 p-3 rounded-lg"
+                      >
+                        <div>
+                          <p className="font-medium text-sm">{mine.name}</p>
+                          <p className="text-xs text-gray-500">
+                            {mine.description}
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          {"minerais" in mine && (
+                            <div className="flex flex-wrap gap-1 justify-end">
+                              {(mine.minerais as string[]).map((m) => (
+                                <Badge
+                                  key={m}
+                                  variant="outline"
+                                  className="text-xs"
+                                >
+                                  {m}
+                                </Badge>
+                              ))}
+                            </div>
+                          )}
+                          {"operateur" in mine && (
+                            <p className="text-xs text-gray-500 mt-1">
+                              {mine.operateur as string}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* Statistiques */}
       <section className="py-12 bg-white">
