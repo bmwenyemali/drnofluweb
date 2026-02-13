@@ -323,3 +323,4 @@ $$;
 -- =============================================
 
 SELECT 'Migration V2 exécutée avec succès!' as message;
+-- test

@@ -98,20 +98,22 @@ export default function SimulationsAdminPage() {
   const updateTauxChange = async () => {
     setSaving(true);
 
-    const { error } = await supabase.from("parametres").upsert(
-      {
-        cle: "taux_change_usd_fc",
+    // Try update first, then insert if it doesn't exist
+    const { error: updateError } = await supabase
+      .from("parametres")
+      .update({
         valeur: newTauxChange,
         description: "Taux de change USD vers FC pour les simulations",
-      },
-      { onConflict: "cle" },
-    );
+        updated_at: new Date().toISOString(),
+      })
+      .eq("cle", "taux_change_usd_fc");
 
-    if (!error) {
+    if (updateError) {
+      console.error("Erreur update parametres:", updateError);
+      alert(`Erreur: ${updateError.message}`);
+    } else {
       setTauxChange(parseFloat(newTauxChange));
       alert("Taux de change mis à jour !");
-    } else {
-      alert("Erreur lors de la mise à jour");
     }
 
     setSaving(false);

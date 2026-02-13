@@ -221,19 +221,26 @@ export default function BonASavoirPage() {
 
     const montantFC = montantUSD * tauxChange;
 
-    // Record simulation
-    await supabase.from("simulations").insert({
-      type_taxe: bareme.description,
-      donnees_formulaire: {
-        bareme_id: bareme.id,
-        montant_base: base,
-        devise_entree: deviseEntree,
-        categorie: bareme.categorie,
-      },
-      resultat_usd: montantUSD,
-      resultat_fc: montantFC,
-      taux_change: tauxChange,
-    });
+    // Record simulation (avec gestion d'erreur silencieuse)
+    try {
+      const { error } = await supabase.from("simulations").insert({
+        type_taxe: bareme.description,
+        donnees_formulaire: {
+          bareme_id: bareme.id,
+          montant_base: base,
+          devise_entree: deviseEntree,
+          categorie: bareme.categorie,
+        },
+        resultat_usd: montantUSD,
+        resultat_fc: montantFC,
+        taux_change: tauxChange,
+      });
+      if (error) {
+        console.warn("Simulation non enregistrée:", error.message);
+      }
+    } catch (e) {
+      console.warn("Erreur enregistrement simulation:", e);
+    }
 
     setResultat({
       usd: montantUSD,

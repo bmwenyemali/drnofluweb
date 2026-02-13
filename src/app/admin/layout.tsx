@@ -223,15 +223,8 @@ export default function AdminLayout({
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
             <Link href="/admin" className="flex items-center gap-3">
-              <Image
-                src="/images/logo2.png"
-                alt="DRNOFLU"
-                width={40}
-                height={40}
-                className="h-10 w-auto"
-              />
               <span className="font-bold text-white hidden sm:inline">
-                DRNOFLU Admin
+                Admin
               </span>
             </Link>
 
