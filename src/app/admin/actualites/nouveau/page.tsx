@@ -211,7 +211,7 @@ export default function NouvelleActualitePage() {
                 <MultiImageUpload
                   value={galerieImages}
                   onChange={setGalerieImages}
-                  folder="drnoflu/actualites"
+                  folder="website/actualites"
                   maxImages={10}
                 />
               </CardContent>
@@ -314,7 +314,7 @@ export default function NouvelleActualitePage() {
                 <ImageUpload
                   value={imageUrl}
                   onChange={setImageUrl}
-                  folder="drnoflu/actualites"
+                  folder="website/actualites"
                   aspectRatio="video"
                   placeholder="Cliquez pour ajouter une image de couverture"
                 />

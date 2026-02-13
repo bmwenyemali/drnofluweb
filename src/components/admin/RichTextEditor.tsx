@@ -66,6 +66,53 @@ export function RichTextEditor({
     [onChange, value],
   );
 
+  const insertLink = useCallback(() => {
+    const textarea = document.getElementById(
+      "rich-editor",
+    ) as HTMLTextAreaElement;
+    if (!textarea) return;
+
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const selectedText = value.substring(start, end);
+
+    const linkText = selectedText || prompt("Texte du lien:", "Cliquez ici");
+    if (linkText === null) return;
+
+    const linkUrl = prompt("URL du lien:", "https://");
+    if (!linkUrl || linkUrl === "https://") return;
+
+    const newText =
+      value.substring(0, start) +
+      `[${linkText}](${linkUrl})` +
+      value.substring(end);
+
+    onChange(newText);
+  }, [onChange, value]);
+
+  const insertImage = useCallback(() => {
+    const textarea = document.getElementById(
+      "rich-editor",
+    ) as HTMLTextAreaElement;
+    if (!textarea) return;
+
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+
+    const imageUrl = prompt("URL de l'image:", "https://");
+    if (!imageUrl || imageUrl === "https://") return;
+
+    const altText = prompt("Description de l'image:", "Image");
+    if (altText === null) return;
+
+    const newText =
+      value.substring(0, start) +
+      `![${altText}](${imageUrl})` +
+      value.substring(end);
+
+    onChange(newText);
+  }, [onChange, value]);
+
   const toolbarButtons = [
     { icon: Heading1, action: () => insertText("## ", ""), title: "Titre" },
     {
@@ -77,12 +124,8 @@ export function RichTextEditor({
     { icon: Italic, action: () => insertText("*", "*"), title: "Italique" },
     { icon: Quote, action: () => insertText("> ", ""), title: "Citation" },
     { icon: List, action: () => insertText("- ", ""), title: "Liste" },
-    { icon: LinkIcon, action: () => insertText("[", "](url)"), title: "Lien" },
-    {
-      icon: ImageIcon,
-      action: () => insertText("![alt](", ")"),
-      title: "Image",
-    },
+    { icon: LinkIcon, action: insertLink, title: "Lien" },
+    { icon: ImageIcon, action: insertImage, title: "Image" },
   ];
 
   // Simple markdown to HTML converter

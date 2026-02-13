@@ -235,7 +235,7 @@ export default function NouveauPersonnelPage() {
                 <ImageUpload
                   value={photoUrl}
                   onChange={setPhotoUrl}
-                  folder="drnoflu/personnel"
+                  folder="website/personnel"
                   aspectRatio="square"
                   placeholder="Photo du membre"
                 />

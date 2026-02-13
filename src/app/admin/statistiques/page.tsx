@@ -102,7 +102,7 @@ export default function StatistiquesPage() {
 
   // Form states
   const [formAnnee, setFormAnnee] = useState(new Date().getFullYear());
-  const [formMois, setFormMois] = useState<string>("");
+  const [formMois, setFormMois] = useState<string>("annual");
   const [formType, setFormType] = useState("");
   const [formMontant, setFormMontant] = useState("");
   const [formDevise, setFormDevise] = useState("USD");
@@ -166,7 +166,7 @@ export default function StatistiquesPage() {
     try {
       const data = {
         annee: formAnnee,
-        mois: formMois ? parseInt(formMois) : null,
+        mois: formMois && formMois !== "annual" ? parseInt(formMois) : null,
         type_recette: formType,
         montant: parseFloat(formMontant),
         devise: formDevise,
@@ -237,7 +237,7 @@ export default function StatistiquesPage() {
   const resetForm = () => {
     setEditingRecette(null);
     setFormAnnee(new Date().getFullYear());
-    setFormMois("");
+    setFormMois("annual");
     setFormType("");
     setFormMontant("");
     setFormDevise("USD");
@@ -256,7 +256,7 @@ export default function StatistiquesPage() {
   const openEditRecette = (recette: StatRecette) => {
     setEditingRecette(recette);
     setFormAnnee(recette.annee);
-    setFormMois(recette.mois?.toString() || "");
+    setFormMois(recette.mois?.toString() || "annual");
     setFormType(recette.type_recette);
     setFormMontant(recette.montant.toString());
     setFormDevise(recette.devise);
@@ -419,7 +419,7 @@ export default function StatistiquesPage() {
                           <SelectValue placeholder="Sélectionner" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="">Annuel</SelectItem>
+                          <SelectItem value="annual">Annuel</SelectItem>
                           {MOIS.map((m) => (
                             <SelectItem
                               key={m.value}

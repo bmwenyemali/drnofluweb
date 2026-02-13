@@ -18,7 +18,7 @@ interface FileUploadProps {
 export function FileUpload({
   value,
   onChange,
-  folder = "drnoflu/documents",
+  folder = "website/documents",
   accept = ".pdf,.doc,.docx,.xls,.xlsx",
   className,
   placeholder = "Cliquez pour sélectionner un fichier",

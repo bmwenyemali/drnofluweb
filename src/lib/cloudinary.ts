@@ -16,14 +16,21 @@ export const CLOUDINARY_CONFIG = {
  */
 export async function uploadToCloudinary(
   file: File,
-  folder: string = "drnoflu",
+  folder: string = "website",
 ): Promise<{ url: string; publicId: string }> {
   // Check configuration
   if (!CLOUDINARY_CONFIG.cloudName || CLOUDINARY_CONFIG.cloudName === "demo") {
-    throw new Error("Cloudinary non configuré. Vérifiez NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME dans .env.local");
+    throw new Error(
+      "Cloudinary non configuré. Vérifiez NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME dans .env.local",
+    );
   }
-  if (!CLOUDINARY_CONFIG.uploadPreset || CLOUDINARY_CONFIG.uploadPreset === "ml_default") {
-    throw new Error("Upload preset non configuré. Vérifiez NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET dans .env.local");
+  if (
+    !CLOUDINARY_CONFIG.uploadPreset ||
+    CLOUDINARY_CONFIG.uploadPreset === "ml_default"
+  ) {
+    throw new Error(
+      "Upload preset non configuré. Vérifiez NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET dans .env.local",
+    );
   }
 
   const formData = new FormData();
@@ -44,7 +51,9 @@ export async function uploadToCloudinary(
 
     if (!response.ok) {
       console.error("Cloudinary error:", data);
-      throw new Error(data.error?.message || `Erreur Cloudinary: ${response.status}`);
+      throw new Error(
+        data.error?.message || `Erreur Cloudinary: ${response.status}`,
+      );
     }
 
     return {
@@ -62,14 +71,21 @@ export async function uploadToCloudinary(
  */
 export async function uploadDocumentToCloudinary(
   file: File,
-  folder: string = "drnoflu/documents",
+  folder: string = "website/documents",
 ): Promise<{ url: string; publicId: string; fileSize: number }> {
   // Check configuration
   if (!CLOUDINARY_CONFIG.cloudName || CLOUDINARY_CONFIG.cloudName === "demo") {
-    throw new Error("Cloudinary non configuré. Vérifiez NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME dans .env.local");
+    throw new Error(
+      "Cloudinary non configuré. Vérifiez NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME dans .env.local",
+    );
   }
-  if (!CLOUDINARY_CONFIG.uploadPreset || CLOUDINARY_CONFIG.uploadPreset === "ml_default") {
-    throw new Error("Upload preset non configuré. Vérifiez NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET dans .env.local");
+  if (
+    !CLOUDINARY_CONFIG.uploadPreset ||
+    CLOUDINARY_CONFIG.uploadPreset === "ml_default"
+  ) {
+    throw new Error(
+      "Upload preset non configuré. Vérifiez NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET dans .env.local",
+    );
   }
 
   const formData = new FormData();
@@ -90,7 +106,9 @@ export async function uploadDocumentToCloudinary(
 
     if (!response.ok) {
       console.error("Cloudinary document error:", data);
-      throw new Error(data.error?.message || `Erreur Cloudinary: ${response.status}`);
+      throw new Error(
+        data.error?.message || `Erreur Cloudinary: ${response.status}`,
+      );
     }
 
     return {

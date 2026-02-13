@@ -1,7 +1,22 @@
 -- ============================================================================
 -- Migration: Add missing columns to existing tables
--- Run this SQL in your Supabase SQL Editor if you already created the database
+-- DRNOFLU Database Migration
 -- ============================================================================
+-- 
+-- INSTRUCTIONS:
+-- 1. Go to your Supabase Dashboard: https://supabase.com/dashboard
+-- 2. Select your project
+-- 3. Go to "SQL Editor" in the left menu
+-- 4. Create a new query
+-- 5. Paste ALL of this SQL code
+-- 6. Click "Run" to execute
+-- 7. You should see "Success. No rows returned" or similar
+--
+-- This script is safe to run multiple times - it checks before adding columns
+-- ============================================================================
+
+-- Start transaction
+BEGIN;
 
 -- Add bio and telephone to profiles if they don't exist
 DO $$

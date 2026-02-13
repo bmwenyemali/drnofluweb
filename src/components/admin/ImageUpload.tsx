@@ -19,7 +19,7 @@ interface ImageUploadProps {
 export function ImageUpload({
   value,
   onChange,
-  folder = "drnoflu",
+  folder = "website",
   aspectRatio = "auto",
   className,
   placeholder = "Cliquez pour ajouter une image",
@@ -163,7 +163,7 @@ interface MultiImageUploadProps {
 export function MultiImageUpload({
   value = [],
   onChange,
-  folder = "drnoflu",
+  folder = "website",
   maxImages = 10,
   className,
 }: MultiImageUploadProps) {
