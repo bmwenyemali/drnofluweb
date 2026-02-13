@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
@@ -22,6 +22,9 @@ import {
   UserCircle,
   Briefcase,
   TrendingUp,
+  Lightbulb,
+  Activity,
+  Calculator,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -35,56 +38,94 @@ import {
 import { cn } from "@/lib/utils";
 import { createBrowserClient } from "@/lib/supabase";
 
-const ADMIN_NAV = [
+// Type pour les rôles utilisateur
+type UserRole = "admin" | "editeur" | "lecteur";
+
+interface NavItem {
+  label: string;
+  href: string;
+  icon: React.ComponentType<{ className?: string }>;
+  roles: UserRole[]; // Rôles autorisés à voir ce menu
+}
+
+const ADMIN_NAV: NavItem[] = [
   {
     label: "Tableau de bord",
     href: "/admin",
     icon: LayoutDashboard,
+    roles: ["admin", "editeur", "lecteur"],
   },
   {
     label: "Actualités",
     href: "/admin/actualites",
     icon: Newspaper,
+    roles: ["admin", "editeur"],
   },
   {
     label: "Documents",
     href: "/admin/documents",
     icon: FolderOpen,
+    roles: ["admin", "editeur"],
+  },
+  {
+    label: "Bon à savoir",
+    href: "/admin/bon-a-savoir",
+    icon: Lightbulb,
+    roles: ["admin", "editeur"],
   },
   {
     label: "Personnel",
     href: "/admin/personnel",
     icon: UserCircle,
+    roles: ["admin"],
   },
   {
     label: "Services",
     href: "/admin/services",
     icon: Briefcase,
+    roles: ["admin"],
   },
   {
     label: "Chiffres Clés",
     href: "/admin/chiffres-cles",
     icon: TrendingUp,
+    roles: ["admin"],
+  },
+  {
+    label: "Simulations",
+    href: "/admin/simulations",
+    icon: Calculator,
+    roles: ["admin"],
   },
   {
     label: "Utilisateurs",
     href: "/admin/utilisateurs",
     icon: Users,
+    roles: ["admin"],
   },
   {
     label: "Messages",
     href: "/admin/messages",
     icon: Mail,
+    roles: ["admin", "editeur"],
+  },
+  {
+    label: "Journal",
+    href: "/admin/journal",
+    icon: Activity,
+    roles: ["admin"],
   },
   {
     label: "Statistiques",
     href: "/admin/statistiques",
     icon: BarChart3,
+    roles: ["admin"],
   },
   {
     label: "Paramètres",
     href: "/admin/parametres",
     icon: Settings,
+    roles: ["admin"],
   },
 ];
 
@@ -100,6 +141,13 @@ export default function AdminLayout({
   const pathname = usePathname();
   const router = useRouter();
   const supabase = createBrowserClient();
+
+  // Filter navigation based on user role
+  const filteredNav = useMemo(() => {
+    const userRole = user?.profile?.role as UserRole | undefined;
+    if (!userRole) return [];
+    return ADMIN_NAV.filter((item) => item.roles.includes(userRole));
+  }, [user?.profile?.role]);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -121,7 +169,9 @@ export default function AdminLayout({
 
         if (
           profile &&
-          (profile.role === "admin" || profile.role === "editeur")
+          (profile.role === "admin" ||
+            profile.role === "editeur" ||
+            profile.role === "lecteur")
         ) {
           setUser({ ...session.user, profile });
         } else {
@@ -207,7 +257,7 @@ export default function AdminLayout({
 
         {/* Navigation */}
         <nav className="p-4 space-y-2">
-          {ADMIN_NAV.map((item) => (
+          {filteredNav.map((item) => (
             <Link
               key={item.href}
               href={item.href}
@@ -274,7 +324,7 @@ export default function AdminLayout({
           </Button>
         </div>
         <nav className="p-4 space-y-2">
-          {ADMIN_NAV.map((item) => (
+          {filteredNav.map((item) => (
             <Link
               key={item.href}
               href={item.href}
@@ -312,7 +362,8 @@ export default function AdminLayout({
               <Menu className="h-5 w-5" />
             </Button>
             <h1 className="text-lg font-semibold text-gray-900">
-              {ADMIN_NAV.find((item) => isActive(item.href))?.label || "Admin"}
+              {filteredNav.find((item) => isActive(item.href))?.label ||
+                "Admin"}
             </h1>
           </div>
 

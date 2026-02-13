@@ -251,3 +251,98 @@ export interface StatistiqueRecette {
   devise: "CDF" | "USD";
   created_at: string;
 }
+
+// Types pour le journal d'activités
+export interface JournalActivite {
+  id: string;
+  user_id?: string;
+  user_email?: string;
+  user_nom?: string;
+  action: "LOGIN" | "LOGOUT" | "CREATE" | "UPDATE" | "DELETE" | "VIEW";
+  entite?: string;
+  entite_id?: string;
+  details: Record<string, unknown>;
+  ip_address?: string;
+  user_agent?: string;
+  created_at: string;
+}
+
+// Types pour les paramètres système
+export interface Parametre {
+  id: string;
+  cle: string;
+  valeur: string;
+  description?: string;
+  type: "string" | "number" | "boolean" | "json";
+  categorie: string;
+  modifiable: boolean;
+  updated_at: string;
+  updated_by?: string;
+}
+
+// Types pour Bon à Savoir (mise à jour)
+export interface BonASavoirItem {
+  id: string;
+  titre: string;
+  contenu: string;
+  type: "astuce" | "information" | "important";
+  icone: string;
+  ordre: number;
+  publie: boolean;
+  created_at: string;
+  updated_at: string;
+  created_by?: string;
+  updated_by?: string;
+}
+
+// Types pour les simulations
+export interface Simulation {
+  id: string;
+  type_taxe: string;
+  donnees_formulaire: Record<string, unknown>;
+  resultat_usd: number;
+  resultat_fc: number;
+  taux_change: number;
+  ip_address?: string;
+  user_agent?: string;
+  created_at: string;
+}
+
+// Types pour les barèmes de simulation
+export interface BaremeSimulation {
+  id: string;
+  categorie: string;
+  description: string;
+  taux_pourcentage?: number;
+  montant_fixe?: number;
+  formule?: string;
+  unite?: string;
+  ordre: number;
+  actif: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+// Types pour les statistiques visiteurs
+export interface StatistiqueVisiteur {
+  id: string;
+  date: string;
+  page?: string;
+  pays?: string;
+  province_rdc?: string;
+  ville?: string;
+  visites: number;
+  visiteurs_uniques: number;
+  duree_moyenne_secondes: number;
+  created_at: string;
+}
+
+// Form data types
+export interface BonASavoirFormData {
+  titre: string;
+  contenu: string;
+  type: "astuce" | "information" | "important";
+  icone: string;
+  ordre: number;
+  publie: boolean;
+}
