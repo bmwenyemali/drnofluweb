@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
@@ -16,6 +16,7 @@ import {
 import { MAIN_NAV, LOCALES, SITE_CONFIG } from "@/lib/config";
 import { useTranslation, Locale } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
+import { SearchDialog } from "./SearchDialog";
 
 /**
  * Header principal du site DRNOFLU
@@ -23,8 +24,22 @@ import { cn } from "@/lib/utils";
  */
 export function Header() {
   const [isOpen, setIsOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
   const { locale, setLocale, t } = useTranslation();
   const pathname = usePathname();
+
+  // Keyboard shortcut: Ctrl+K or Cmd+K to open search
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === "k") {
+        e.preventDefault();
+        setSearchOpen(true);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
   const isActive = (href: string) => {
     if (href === "/") return pathname === "/";
@@ -161,10 +176,21 @@ export function Header() {
           {/* Actions à droite */}
           <div className="flex items-center gap-2">
             {/* Bouton Recherche */}
-            <Button variant="ghost" size="icon" className="hidden sm:flex">
-              <Search className="h-5 w-5" />
-              <span className="sr-only">Rechercher</span>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="hidden sm:flex items-center gap-2 text-gray-600 hover:text-gray-900"
+              onClick={() => setSearchOpen(true)}
+            >
+              <Search className="h-4 w-4" />
+              <span className="text-sm hidden md:inline">Rechercher</span>
+              <kbd className="hidden lg:inline-flex items-center gap-1 px-1.5 py-0.5 text-xs bg-gray-100 border rounded">
+                <span className="text-xs">⌘</span>K
+              </kbd>
             </Button>
+
+            {/* Search Dialog */}
+            <SearchDialog open={searchOpen} onOpenChange={setSearchOpen} />
 
             {/* Menu Mobile */}
             <Sheet open={isOpen} onOpenChange={setIsOpen}>

@@ -221,13 +221,6 @@ export default function AdminLayout({
       <header className="sticky top-0 z-50 bg-primary-900 text-white shadow-lg">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between h-16">
-            {/* Logo */}
-            <Link href="/admin" className="flex items-center gap-3">
-              <span className="font-bold text-white hidden sm:inline">
-                Admin
-              </span>
-            </Link>
-
             {/* Mobile Menu Button */}
             <Button
               variant="ghost"
@@ -242,20 +235,20 @@ export default function AdminLayout({
               )}
             </Button>
 
-            {/* Desktop Navigation */}
-            <nav className="hidden lg:flex items-center gap-1">
+            {/* Desktop Navigation - Scrollable */}
+            <nav className="hidden lg:flex items-center gap-1 overflow-x-auto max-w-[calc(100vw-400px)] scrollbar-hide">
               {filteredNav.map((item) => (
                 <Link
                   key={item.href}
                   href={item.href}
                   className={cn(
-                    "flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors",
+                    "flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium transition-colors whitespace-nowrap",
                     isActive(item.href)
                       ? "bg-white/20 text-white"
                       : "text-white/80 hover:bg-white/10 hover:text-white",
                   )}
                 >
-                  <item.icon className="h-4 w-4" />
+                  <item.icon className="h-3.5 w-3.5 shrink-0" />
                   <span>{item.label}</span>
                 </Link>
               ))}
