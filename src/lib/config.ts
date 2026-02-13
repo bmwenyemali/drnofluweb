@@ -424,16 +424,6 @@ export const DIRECTION_INFO = {
 // Navigation principale
 export const MAIN_NAV: NavItem[] = [
   {
-    label: "L'Institution",
-    href: "/a-propos",
-    children: [
-      { label: "À Propos", href: "/a-propos" },
-      { label: "Direction", href: "/direction" },
-      { label: "Structure", href: "/structure" },
-      { label: "Contact", href: "/contact" },
-    ],
-  },
-  {
     label: "Services",
     href: "/services",
     children: [
@@ -446,6 +436,16 @@ export const MAIN_NAV: NavItem[] = [
   { label: "Cartographie", href: "/cartographie" },
   { label: "Actualités", href: "/actualites" },
   { label: "Bon à Savoir", href: "/bon-a-savoir" },
+  {
+    label: "L'Institution",
+    href: "/a-propos",
+    children: [
+      { label: "À Propos", href: "/a-propos" },
+      { label: "Direction", href: "/direction" },
+      { label: "Structure", href: "/structure" },
+      { label: "Contact", href: "/contact" },
+    ],
+  },
 ];
 
 // Chiffres clés (valeurs fictives à mettre à jour)

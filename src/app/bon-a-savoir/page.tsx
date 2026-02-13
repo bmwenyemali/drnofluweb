@@ -123,9 +123,16 @@ export default function BonASavoirPage() {
   // Simulator state
   const [selectedBareme, setSelectedBareme] = useState<string>("");
   const [montantBase, setMontantBase] = useState<string>("");
-  const [resultat, setResultat] = useState<{ usd: number; fc: number } | null>(
-    null,
-  );
+  const [deviseEntree, setDeviseEntree] = useState<"USD" | "FC">("USD");
+  const [resultat, setResultat] = useState<{
+    usd: number;
+    fc: number;
+    baseUSD: number;
+    baseFC: number;
+    description: string;
+    taux: number | null;
+    montantFixe: number | null;
+  } | null>(null);
   const [simulating, setSimulating] = useState(false);
 
   const supabase = createBrowserClient();
@@ -195,12 +202,20 @@ export default function BonASavoirPage() {
       return;
     }
 
-    let montantUSD = 0;
     const base = parseFloat(montantBase);
 
-    if (bareme.taux_pourcentage) {
-      montantUSD = base * (bareme.taux_pourcentage / 100);
-    } else if (bareme.montant_fixe) {
+    // Convert base amount to USD if entered in FC
+    const baseUSD = deviseEntree === "USD" ? base : base / tauxChange;
+    const baseFC = deviseEntree === "FC" ? base : base * tauxChange;
+
+    let montantUSD = 0;
+
+    // Calculate based on bareme type
+    if (bareme.taux_pourcentage && bareme.taux_pourcentage > 0) {
+      // Percentage-based calculation
+      montantUSD = baseUSD * (bareme.taux_pourcentage / 100);
+    } else if (bareme.montant_fixe && bareme.montant_fixe > 0) {
+      // Fixed amount
       montantUSD = bareme.montant_fixe;
     }
 
@@ -212,6 +227,7 @@ export default function BonASavoirPage() {
       donnees_formulaire: {
         bareme_id: bareme.id,
         montant_base: base,
+        devise_entree: deviseEntree,
         categorie: bareme.categorie,
       },
       resultat_usd: montantUSD,
@@ -219,7 +235,15 @@ export default function BonASavoirPage() {
       taux_change: tauxChange,
     });
 
-    setResultat({ usd: montantUSD, fc: montantFC });
+    setResultat({
+      usd: montantUSD,
+      fc: montantFC,
+      baseUSD,
+      baseFC,
+      description: bareme.description,
+      taux: bareme.taux_pourcentage || null,
+      montantFixe: bareme.montant_fixe || null,
+    });
     setSimulating(false);
   };
 
@@ -445,19 +469,28 @@ export default function BonASavoirPage() {
 
             {/* Onglet Simulateur */}
             <TabsContent value="calculateur">
-              <div className="max-w-2xl mx-auto">
+              <div className="max-w-3xl mx-auto">
                 <Card>
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                       <Calculator className="h-5 w-5" />
-                      Simulateur de Contribution
+                      Simulateur de Contribution Fiscale
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-6">
-                    <p className="text-gray-600">
-                      Estimez le montant de votre contribution en sélectionnant
-                      le type de taxe et en indiquant le montant de base.
-                    </p>
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                      <h4 className="font-medium text-blue-900 mb-2">
+                        Comment utiliser le simulateur ?
+                      </h4>
+                      <ol className="text-sm text-blue-800 space-y-1 list-decimal list-inside">
+                        <li>Sélectionnez le type de contribution ou taxe</li>
+                        <li>Choisissez votre devise (USD ou FC)</li>
+                        <li>Entrez le montant de base sur lequel calculer</li>
+                        <li>
+                          Cliquez sur &quot;Calculer&quot; pour voir le résultat
+                        </li>
+                      </ol>
+                    </div>
 
                     {loading ? (
                       <div className="space-y-4">
@@ -475,30 +508,37 @@ export default function BonASavoirPage() {
                     ) : (
                       <>
                         <div className="space-y-4">
+                          {/* Type de contribution */}
                           <div className="space-y-2">
-                            <Label htmlFor="bareme">Type de contribution</Label>
+                            <Label htmlFor="bareme">
+                              1. Type de contribution
+                            </Label>
                             <Select
                               value={selectedBareme}
-                              onValueChange={setSelectedBareme}
+                              onValueChange={(val) => {
+                                setSelectedBareme(val);
+                                setResultat(null);
+                              }}
                             >
                               <SelectTrigger>
                                 <SelectValue placeholder="Sélectionnez une taxe..." />
                               </SelectTrigger>
                               <SelectContent>
                                 {Object.entries(baremesGrouped).map(
-                                  ([categorie, items]) => (
+                                  ([categorie, catItems]) => (
                                     <div key={categorie}>
                                       <div className="px-2 py-1.5 text-sm font-semibold text-gray-500 bg-gray-100">
                                         {categorie}
                                       </div>
-                                      {items.map((b) => (
+                                      {catItems.map((b) => (
                                         <SelectItem key={b.id} value={b.id}>
                                           {b.description}
-                                          {b.taux_pourcentage
+                                          {b.taux_pourcentage &&
+                                          b.taux_pourcentage > 0
                                             ? ` (${b.taux_pourcentage}%)`
                                             : ""}
-                                          {b.montant_fixe
-                                            ? ` (${b.montant_fixe} USD)`
+                                          {b.montant_fixe && b.montant_fixe > 0
+                                            ? ` (${b.montant_fixe} USD fixe)`
                                             : ""}
                                         </SelectItem>
                                       ))}
@@ -509,21 +549,76 @@ export default function BonASavoirPage() {
                             </Select>
                           </div>
 
+                          {/* Devise */}
+                          <div className="space-y-2">
+                            <Label>2. Devise de saisie</Label>
+                            <div className="flex gap-2">
+                              <Button
+                                type="button"
+                                variant={
+                                  deviseEntree === "USD" ? "default" : "outline"
+                                }
+                                onClick={() => {
+                                  setDeviseEntree("USD");
+                                  setResultat(null);
+                                }}
+                                className="flex-1"
+                              >
+                                🇺🇸 USD (Dollar américain)
+                              </Button>
+                              <Button
+                                type="button"
+                                variant={
+                                  deviseEntree === "FC" ? "default" : "outline"
+                                }
+                                onClick={() => {
+                                  setDeviseEntree("FC");
+                                  setResultat(null);
+                                }}
+                                className="flex-1"
+                              >
+                                🇨🇩 FC (Franc congolais)
+                              </Button>
+                            </div>
+                            <p className="text-xs text-gray-500">
+                              Taux de change actuel : 1 USD ={" "}
+                              {tauxChange.toLocaleString()} FC
+                            </p>
+                          </div>
+
+                          {/* Montant de base */}
                           <div className="space-y-2">
                             <Label htmlFor="montant">
-                              Montant de base (USD)
+                              3. Montant de base ({deviseEntree})
                             </Label>
-                            <Input
-                              id="montant"
-                              type="number"
-                              placeholder="Ex: 10000"
-                              value={montantBase}
-                              onChange={(e) => setMontantBase(e.target.value)}
-                              min="0"
-                              step="0.01"
-                            />
+                            <div className="relative">
+                              <Input
+                                id="montant"
+                                type="number"
+                                placeholder={
+                                  deviseEntree === "USD"
+                                    ? "Ex: 10000"
+                                    : "Ex: 28500000"
+                                }
+                                value={montantBase}
+                                onChange={(e) => {
+                                  setMontantBase(e.target.value);
+                                  setResultat(null);
+                                }}
+                                min="0"
+                                step="0.01"
+                                className="pr-16"
+                              />
+                              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 font-medium">
+                                {deviseEntree}
+                              </span>
+                            </div>
                             <p className="text-xs text-gray-500">
-                              Entrez le montant sur lequel appliquer la taxe
+                              {selectedBareme &&
+                              baremes.find((b) => b.id === selectedBareme)
+                                ?.taux_pourcentage
+                                ? "Entrez le montant sur lequel appliquer le pourcentage"
+                                : "Pour les montants fixes, ce champ sert uniquement de référence"}
                             </p>
                           </div>
 
@@ -533,6 +628,7 @@ export default function BonASavoirPage() {
                               !selectedBareme || !montantBase || simulating
                             }
                             className="w-full"
+                            size="lg"
                           >
                             {simulating ? (
                               <>
@@ -542,46 +638,92 @@ export default function BonASavoirPage() {
                             ) : (
                               <>
                                 <Calculator className="mr-2 h-4 w-4" />
-                                Calculer
+                                Calculer ma contribution
                               </>
                             )}
                           </Button>
                         </div>
 
+                        {/* Résultat */}
                         {resultat && (
                           <Card className="bg-green-50 border-green-200">
                             <CardContent className="p-6">
-                              <h3 className="font-semibold text-lg mb-4 text-green-800">
+                              <h3 className="font-semibold text-lg mb-4 text-green-800 flex items-center gap-2">
+                                <Calculator className="h-5 w-5" />
                                 Résultat de la simulation
                               </h3>
-                              <div className="grid grid-cols-2 gap-4">
-                                <div className="p-4 bg-white rounded-lg border">
-                                  <p className="text-sm text-gray-500">
-                                    Montant en USD
+
+                              {/* Détails du calcul */}
+                              <div className="bg-white rounded-lg p-4 mb-4 space-y-2 text-sm">
+                                <p>
+                                  <strong>Type :</strong> {resultat.description}
+                                </p>
+                                <p>
+                                  <strong>Base de calcul :</strong>{" "}
+                                  {resultat.baseUSD.toLocaleString("fr-FR", {
+                                    minimumFractionDigits: 2,
+                                  })}{" "}
+                                  USD
+                                  {" / "}
+                                  {resultat.baseFC.toLocaleString("fr-FR", {
+                                    minimumFractionDigits: 0,
+                                  })}{" "}
+                                  FC
+                                </p>
+                                {resultat.taux && (
+                                  <p>
+                                    <strong>Taux appliqué :</strong>{" "}
+                                    {resultat.taux}%
                                   </p>
-                                  <p className="text-2xl font-bold text-green-700">
+                                )}
+                                {resultat.montantFixe && (
+                                  <p>
+                                    <strong>Montant fixe :</strong>{" "}
+                                    {resultat.montantFixe} USD
+                                  </p>
+                                )}
+                              </div>
+
+                              {/* Montants */}
+                              <div className="grid grid-cols-2 gap-4">
+                                <div className="p-4 bg-white rounded-lg border-2 border-green-300">
+                                  <p className="text-sm text-gray-500">
+                                    💵 Montant en USD
+                                  </p>
+                                  <p className="text-3xl font-bold text-green-700">
                                     {resultat.usd.toLocaleString("fr-FR", {
                                       style: "currency",
                                       currency: "USD",
                                     })}
                                   </p>
                                 </div>
-                                <div className="p-4 bg-white rounded-lg border">
+                                <div className="p-4 bg-white rounded-lg border-2 border-green-300">
                                   <p className="text-sm text-gray-500">
-                                    Montant en FC
+                                    🇨🇩 Montant en FC
                                   </p>
-                                  <p className="text-2xl font-bold text-green-700">
-                                    {resultat.fc.toLocaleString("fr-FR")} FC
+                                  <p className="text-3xl font-bold text-green-700">
+                                    {resultat.fc.toLocaleString("fr-FR", {
+                                      minimumFractionDigits: 0,
+                                    })}{" "}
+                                    FC
                                   </p>
                                 </div>
                               </div>
-                              <p className="text-sm text-gray-500 mt-4">
-                                Taux de change appliqué : 1 USD ={" "}
-                                {tauxChange.toLocaleString()} FC
-                              </p>
-                              <p className="text-xs text-gray-400 mt-2">
-                                Note : Ce calcul est indicatif. Le montant final
-                                peut varier selon votre situation.
+
+                              <div className="mt-4 p-3 bg-white rounded-lg border text-sm">
+                                <p className="text-gray-600">
+                                  <strong>Taux de change appliqué :</strong> 1
+                                  USD = {tauxChange.toLocaleString()} FC
+                                </p>
+                              </div>
+
+                              <p className="text-xs text-gray-500 mt-4">
+                                ⚠️ <strong>Note importante :</strong> Ce calcul
+                                est purement indicatif et ne constitue pas une
+                                facture officielle. Le montant final peut varier
+                                selon votre situation spécifique et les
+                                conditions en vigueur. Pour une estimation
+                                précise, veuillez contacter nos services.
                               </p>
                             </CardContent>
                           </Card>
@@ -592,7 +734,8 @@ export default function BonASavoirPage() {
                     <Card className="bg-gray-100">
                       <CardContent className="p-6 text-center">
                         <p className="text-gray-600 mb-4">
-                          Besoin d&apos;une estimation personnalisée ?
+                          Besoin d&apos;une estimation personnalisée ou
+                          d&apos;informations complémentaires ?
                         </p>
                         <Button asChild variant="outline">
                           <Link href="/contact">Contactez nos services</Link>

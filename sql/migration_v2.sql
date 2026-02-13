@@ -122,19 +122,18 @@ CREATE INDEX IF NOT EXISTS idx_stats_visiteurs_province ON statistiques_visiteur
 
 CREATE TABLE IF NOT EXISTS simulations (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  type_recette VARCHAR(100) NOT NULL, -- minier, commercial, transport, etc.
-  sous_type VARCHAR(255),
-  parametres JSONB NOT NULL, -- Tous les paramètres du formulaire
-  montant_usd DECIMAL(15, 2) NOT NULL,
+  type_taxe VARCHAR(255) NOT NULL,
+  donnees_formulaire JSONB NOT NULL DEFAULT '{}',
+  resultat_usd DECIMAL(15, 2) NOT NULL,
+  resultat_fc DECIMAL(20, 2) NOT NULL,
   taux_change DECIMAL(15, 4) NOT NULL,
-  montant_fc DECIMAL(20, 2) NOT NULL,
   ip_address VARCHAR(45),
   user_agent TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
 -- Index pour statistiques
-CREATE INDEX IF NOT EXISTS idx_simulations_type ON simulations(type_recette);
+CREATE INDEX IF NOT EXISTS idx_simulations_type ON simulations(type_taxe);
 CREATE INDEX IF NOT EXISTS idx_simulations_created_at ON simulations(created_at DESC);
 
 
@@ -144,63 +143,74 @@ CREATE INDEX IF NOT EXISTS idx_simulations_created_at ON simulations(created_at 
 
 CREATE TABLE IF NOT EXISTS baremes_simulation (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  type_recette VARCHAR(100) NOT NULL,
-  sous_type VARCHAR(255) NOT NULL,
-  description TEXT,
-  formule TEXT, -- Description de la formule de calcul
+  categorie VARCHAR(100) NOT NULL,
+  description VARCHAR(255) NOT NULL,
+  taux_pourcentage DECIMAL(10, 4) DEFAULT 0,
   montant_fixe DECIMAL(15, 2) DEFAULT 0,
-  pourcentage DECIMAL(5, 2) DEFAULT 0,
-  minimum DECIMAL(15, 2) DEFAULT 0,
-  maximum DECIMAL(15, 2) DEFAULT 0,
-  unite VARCHAR(50), -- par tonne, par m², par véhicule, etc.
+  formule TEXT,
+  unite VARCHAR(100),
+  ordre INTEGER DEFAULT 0,
   actif BOOLEAN DEFAULT true,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
 -- Index
-CREATE INDEX IF NOT EXISTS idx_baremes_type ON baremes_simulation(type_recette);
+CREATE INDEX IF NOT EXISTS idx_baremes_categorie ON baremes_simulation(categorie);
 
 -- Données initiales des barèmes
-INSERT INTO baremes_simulation (type_recette, sous_type, description, montant_fixe, pourcentage, unite) VALUES
+INSERT INTO baremes_simulation (categorie, description, montant_fixe, taux_pourcentage, unite, ordre) VALUES
 -- Secteur minier
-('minier', 'redevance_superficie', 'Redevance superficiaire minière', 25, 0, 'par hectare/an'),
-('minier', 'taxe_extraction', 'Taxe sur extraction de minerais', 0, 2.5, 'de la valeur'),
-('minier', 'permis_exploitation', 'Permis d''exploitation minière', 5000, 0, 'par permis'),
-('minier', 'carte_exploitant', 'Carte d''exploitant artisanal', 50, 0, 'par carte'),
+('Secteur Minier', 'Redevance superficiaire minière', 25, 0, 'USD par hectare/an', 1),
+('Secteur Minier', 'Taxe sur extraction de minerais', 0, 2.5, '% de la valeur', 2),
+('Secteur Minier', 'Permis d''exploitation minière', 5000, 0, 'USD par permis', 3),
+('Secteur Minier', 'Carte d''exploitant artisanal', 50, 0, 'USD par carte', 4),
 
 -- Secteur commercial
-('commercial', 'patente', 'Patente commerciale annuelle', 200, 0, 'par établissement'),
-('commercial', 'licence_import', 'Licence d''importation', 500, 0, 'par licence'),
-('commercial', 'licence_export', 'Licence d''exportation', 350, 0, 'par licence'),
-('commercial', 'taxe_publicite', 'Taxe sur affichage publicitaire', 0, 0, 'par m²'),
+('Secteur Commercial', 'Patente commerciale annuelle', 200, 0, 'USD par établissement', 1),
+('Secteur Commercial', 'Licence d''importation', 500, 0, 'USD par licence', 2),
+('Secteur Commercial', 'Licence d''exportation', 350, 0, 'USD par licence', 3),
+('Secteur Commercial', 'Taxe sur affichage publicitaire', 5, 0, 'USD par m²', 4),
 
 -- Transport
-('transport', 'taxe_vehicule', 'Taxe annuelle sur véhicule', 100, 0, 'par véhicule'),
-('transport', 'permis_transport', 'Permis de transport en commun', 250, 0, 'par véhicule'),
-('transport', 'taxe_stationnement', 'Taxe de stationnement commercial', 50, 0, 'par mois'),
+('Transport', 'Taxe annuelle sur véhicule', 100, 0, 'USD par véhicule', 1),
+('Transport', 'Permis de transport en commun', 250, 0, 'USD par véhicule', 2),
+('Transport', 'Taxe de stationnement commercial', 50, 0, 'USD par mois', 3),
 
 -- Foncier
-('foncier', 'taxe_terrain', 'Taxe foncière sur terrain', 0.5, 0, 'par m²/an'),
-('foncier', 'taxe_batiment', 'Taxe sur bâtiment', 0, 1, 'de la valeur locative'),
+('Foncier', 'Taxe foncière sur terrain', 0.5, 0, 'USD par m²/an', 1),
+('Foncier', 'Taxe sur bâtiment', 0, 1, '% de la valeur locative', 2),
 
 -- Environnement
-('environnement', 'taxe_pollution', 'Taxe anti-pollution', 0, 0.5, 'du chiffre d''affaires'),
-('environnement', 'autorisation_coupe', 'Autorisation de coupe de bois', 10, 0, 'par m³'),
+('Environnement', 'Taxe anti-pollution', 0, 0.5, '% du chiffre d''affaires', 1),
+('Environnement', 'Autorisation de coupe de bois', 10, 0, 'USD par m³', 2),
 
 -- Agriculture
-('agricole', 'taxe_elevage', 'Taxe sur élevage bovin', 5, 0, 'par tête'),
-('agricole', 'taxe_peche', 'Permis de pêche commerciale', 100, 0, 'par an'),
+('Agriculture', 'Taxe sur élevage bovin', 5, 0, 'USD par tête', 1),
+('Agriculture', 'Permis de pêche commerciale', 100, 0, 'USD par an', 2),
 
 -- Santé
-('sante', 'autorisation_sanitaire', 'Autorisation d''ouverture établissement', 300, 0, 'par établissement'),
-('sante', 'licence_pharmacie', 'Licence d''exploitation pharmacie', 500, 0, 'par an')
+('Santé', 'Autorisation d''ouverture établissement', 300, 0, 'USD par établissement', 1),
+('Santé', 'Licence d''exploitation pharmacie', 500, 0, 'USD par an', 2)
 ON CONFLICT DO NOTHING;
 
 
 -- =============================================
 -- 7. RLS POLICIES
 -- =============================================
+
+-- Drop existing policies if they exist
+DROP POLICY IF EXISTS "Parametres visibles par tous" ON parametres;
+DROP POLICY IF EXISTS "Parametres modifiables par admins" ON parametres;
+DROP POLICY IF EXISTS "Bon a savoir publié visible par tous" ON bon_a_savoir;
+DROP POLICY IF EXISTS "Bon a savoir modifiable par admins/editeurs" ON bon_a_savoir;
+DROP POLICY IF EXISTS "Journal visible par admins" ON journal_activites;
+DROP POLICY IF EXISTS "Journal insertable par tous authentifiés" ON journal_activites;
+DROP POLICY IF EXISTS "Stats visiteurs visibles par admins" ON statistiques_visiteurs;
+DROP POLICY IF EXISTS "Simulations insertables par tous" ON simulations;
+DROP POLICY IF EXISTS "Simulations visibles par admins" ON simulations;
+DROP POLICY IF EXISTS "Baremes visibles par tous" ON baremes_simulation;
+DROP POLICY IF EXISTS "Baremes modifiables par admins" ON baremes_simulation;
 
 -- Parametres: seuls les admins peuvent modifier
 ALTER TABLE parametres ENABLE ROW LEVEL SECURITY;
@@ -217,7 +227,7 @@ CREATE POLICY "Parametres modifiables par admins" ON parametres
 ALTER TABLE bon_a_savoir ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Bon a savoir publié visible par tous" ON bon_a_savoir
-  FOR SELECT USING (publie = true);
+  FOR SELECT USING (true);
 
 CREATE POLICY "Bon a savoir modifiable par admins/editeurs" ON bon_a_savoir
   FOR ALL USING (

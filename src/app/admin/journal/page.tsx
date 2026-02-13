@@ -390,8 +390,8 @@ export default function JournalAdminPage() {
                   <Globe className="h-12 w-12 mx-auto mb-4 text-gray-300" />
                   <p>Aucune donnée de visiteurs disponible</p>
                   <p className="text-sm mt-2">
-                    Configurez un outil d&apos;analytics pour commencer à collecter
-                    les données
+                    Configurez un outil d&apos;analytics pour commencer à
+                    collecter les données
                   </p>
                 </div>
               ) : (

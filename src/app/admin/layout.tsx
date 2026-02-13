@@ -8,13 +8,11 @@ import {
   LayoutDashboard,
   Newspaper,
   Users,
-  FileText,
   Mail,
   Settings,
   LogOut,
   Menu,
   X,
-  ChevronRight,
   Bell,
   BarChart3,
   FolderOpen,
@@ -219,206 +217,172 @@ export default function AdminLayout({
 
   return (
     <div className="min-h-screen bg-gray-100">
-      {/* Sidebar Desktop */}
-      <aside
-        className={cn(
-          "fixed left-0 top-0 z-40 h-screen bg-white border-r transition-all duration-300 hidden lg:block",
-          sidebarOpen ? "w-64" : "w-20",
-        )}
-      >
-        {/* Logo */}
-        <div className="h-16 flex items-center justify-between px-4 border-b">
-          <Link href="/admin" className="flex items-center gap-3">
-            <Image
-              src="/images/logo2.png"
-              alt="DRNOFLU"
-              width={40}
-              height={40}
-              className="h-10 w-auto"
-            />
-            {sidebarOpen && (
-              <span className="font-bold text-primary-900">DRNOFLU Admin</span>
-            )}
-          </Link>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="hidden lg:flex"
-          >
-            <ChevronRight
-              className={cn(
-                "h-5 w-5 transition-transform",
-                !sidebarOpen && "rotate-180",
-              )}
-            />
-          </Button>
-        </div>
-
-        {/* Navigation */}
-        <nav className="p-4 space-y-2">
-          {filteredNav.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={cn(
-                "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
-                isActive(item.href)
-                  ? "bg-primary-100 text-primary-900"
-                  : "text-gray-600 hover:bg-gray-100 hover:text-gray-900",
-              )}
-            >
-              <item.icon className="h-5 w-5 shrink-0" />
-              {sidebarOpen && <span>{item.label}</span>}
+      {/* Top Navigation Bar - Horizontal */}
+      <header className="sticky top-0 z-50 bg-primary-900 text-white shadow-lg">
+        <div className="container mx-auto px-4">
+          <div className="flex items-center justify-between h-16">
+            {/* Logo */}
+            <Link href="/admin" className="flex items-center gap-3">
+              <Image
+                src="/images/logo2.png"
+                alt="DRNOFLU"
+                width={40}
+                height={40}
+                className="h-10 w-auto"
+              />
+              <span className="font-bold text-white hidden sm:inline">
+                DRNOFLU Admin
+              </span>
             </Link>
-          ))}
-        </nav>
 
-        {/* Footer sidebar */}
-        <div className="absolute bottom-0 left-0 right-0 p-4 border-t">
-          <Link
-            href="/"
-            className={cn(
-              "flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-gray-600 hover:bg-gray-100 transition-colors",
-              !sidebarOpen && "justify-center",
-            )}
-          >
-            <HelpCircle className="h-5 w-5" />
-            {sidebarOpen && <span>Retour au site</span>}
-          </Link>
-        </div>
-      </aside>
-
-      {/* Mobile Menu Overlay */}
-      {mobileMenuOpen && (
-        <div
-          className="fixed inset-0 z-40 bg-black/50 lg:hidden"
-          onClick={() => setMobileMenuOpen(false)}
-        />
-      )}
-
-      {/* Mobile Sidebar */}
-      <aside
-        className={cn(
-          "fixed left-0 top-0 z-50 h-screen w-64 bg-white transform transition-transform lg:hidden",
-          mobileMenuOpen ? "translate-x-0" : "-translate-x-full",
-        )}
-      >
-        <div className="h-16 flex items-center justify-between px-4 border-b">
-          <Link href="/admin" className="flex items-center gap-3">
-            <Image
-              src="/images/logo2.png"
-              alt="DRNOFLU"
-              width={40}
-              height={40}
-              className="h-10 w-auto"
-            />
-            <span className="font-bold text-primary-900">DRNOFLU</span>
-          </Link>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setMobileMenuOpen(false)}
-          >
-            <X className="h-5 w-5" />
-          </Button>
-        </div>
-        <nav className="p-4 space-y-2">
-          {filteredNav.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              onClick={() => setMobileMenuOpen(false)}
-              className={cn(
-                "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
-                isActive(item.href)
-                  ? "bg-primary-100 text-primary-900"
-                  : "text-gray-600 hover:bg-gray-100",
-              )}
-            >
-              <item.icon className="h-5 w-5" />
-              <span>{item.label}</span>
-            </Link>
-          ))}
-        </nav>
-      </aside>
-
-      {/* Main Content */}
-      <div
-        className={cn(
-          "transition-all duration-300",
-          sidebarOpen ? "lg:ml-64" : "lg:ml-20",
-        )}
-      >
-        {/* Top Header */}
-        <header className="sticky top-0 z-30 h-16 bg-white border-b flex items-center justify-between px-4 lg:px-6">
-          <div className="flex items-center gap-4">
+            {/* Mobile Menu Button */}
             <Button
               variant="ghost"
               size="icon"
-              className="lg:hidden"
-              onClick={() => setMobileMenuOpen(true)}
+              className="lg:hidden text-white hover:bg-white/10"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             >
-              <Menu className="h-5 w-5" />
+              {mobileMenuOpen ? (
+                <X className="h-5 w-5" />
+              ) : (
+                <Menu className="h-5 w-5" />
+              )}
             </Button>
-            <h1 className="text-lg font-semibold text-gray-900">
-              {filteredNav.find((item) => isActive(item.href))?.label ||
-                "Admin"}
-            </h1>
-          </div>
 
-          <div className="flex items-center gap-3">
-            {/* Notifications */}
-            <Button variant="ghost" size="icon" className="relative">
-              <Bell className="h-5 w-5" />
-              <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full" />
-            </Button>
+            {/* Desktop Navigation */}
+            <nav className="hidden lg:flex items-center gap-1">
+              {filteredNav.map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={cn(
+                    "flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors",
+                    isActive(item.href)
+                      ? "bg-white/20 text-white"
+                      : "text-white/80 hover:bg-white/10 hover:text-white",
+                  )}
+                >
+                  <item.icon className="h-4 w-4" />
+                  <span>{item.label}</span>
+                </Link>
+              ))}
+            </nav>
 
             {/* User Menu */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="flex items-center gap-2">
-                  <Avatar className="h-8 w-8">
-                    <AvatarImage src={user?.profile?.avatar_url} />
-                    <AvatarFallback className="bg-primary-100 text-primary-700">
-                      {user?.profile?.nom_complet?.charAt(0) || "A"}
-                    </AvatarFallback>
-                  </Avatar>
-                  <span className="hidden md:inline text-sm font-medium">
-                    {user?.profile?.nom_complet || "Admin"}
-                  </span>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
-                <div className="px-2 py-1.5">
-                  <p className="text-sm font-medium">
-                    {user?.profile?.nom_complet}
-                  </p>
-                  <p className="text-xs text-gray-500">{user?.email}</p>
-                </div>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                  <Link href="/admin/parametres">
-                    <Settings className="mr-2 h-4 w-4" />
-                    Paramètres
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  onClick={handleLogout}
-                  className="text-red-600"
-                >
-                  <LogOut className="mr-2 h-4 w-4" />
-                  Déconnexion
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        </header>
+            <div className="hidden lg:flex items-center gap-3">
+              {/* Notifications */}
+              <Button
+                variant="ghost"
+                size="icon"
+                className="relative text-white hover:bg-white/10"
+              >
+                <Bell className="h-5 w-5" />
+                <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full" />
+              </Button>
 
-        {/* Page Content */}
-        <main className="p-4 lg:p-6">{children}</main>
-      </div>
+              {/* Retour au site */}
+              <Link
+                href="/"
+                className="flex items-center gap-2 px-3 py-2 rounded-md text-sm text-white/80 hover:bg-white/10 hover:text-white"
+              >
+                <HelpCircle className="h-4 w-4" />
+                <span>Site</span>
+              </Link>
+
+              {/* User Dropdown */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    className="flex items-center gap-2 text-white hover:bg-white/10"
+                  >
+                    <Avatar className="h-8 w-8">
+                      <AvatarImage src={user?.profile?.avatar_url} />
+                      <AvatarFallback className="bg-white/20 text-white">
+                        {user?.profile?.nom_complet?.charAt(0) || "A"}
+                      </AvatarFallback>
+                    </Avatar>
+                    <span className="hidden xl:inline text-sm font-medium">
+                      {user?.profile?.nom_complet || "Admin"}
+                    </span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <div className="px-2 py-1.5">
+                    <p className="text-sm font-medium">
+                      {user?.profile?.nom_complet}
+                    </p>
+                    <p className="text-xs text-gray-500">{user?.email}</p>
+                    <p className="text-xs text-primary-600 font-medium mt-1">
+                      {user?.profile?.role === "admin" && "Administrateur"}
+                      {user?.profile?.role === "editeur" && "Éditeur"}
+                      {user?.profile?.role === "lecteur" && "Lecteur"}
+                    </p>
+                  </div>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <Link href="/admin/parametres">
+                      <Settings className="mr-2 h-4 w-4" />
+                      Paramètres
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    onClick={handleLogout}
+                    className="text-red-600"
+                  >
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Déconnexion
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          </div>
+        </div>
+
+        {/* Mobile Navigation Dropdown */}
+        {mobileMenuOpen && (
+          <div className="lg:hidden border-t border-white/10">
+            <nav className="container mx-auto px-4 py-2 space-y-1">
+              {filteredNav.map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={cn(
+                    "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
+                    isActive(item.href)
+                      ? "bg-white/20 text-white"
+                      : "text-white/80 hover:bg-white/10",
+                  )}
+                >
+                  <item.icon className="h-5 w-5" />
+                  <span>{item.label}</span>
+                </Link>
+              ))}
+              <div className="border-t border-white/10 pt-2 mt-2">
+                <Link
+                  href="/"
+                  className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-white/80 hover:bg-white/10"
+                >
+                  <HelpCircle className="h-5 w-5" />
+                  <span>Retour au site</span>
+                </Link>
+                <button
+                  onClick={handleLogout}
+                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-red-300 hover:bg-white/10"
+                >
+                  <LogOut className="h-5 w-5" />
+                  <span>Déconnexion</span>
+                </button>
+              </div>
+            </nav>
+          </div>
+        )}
+      </header>
+
+      {/* Page Content */}
+      <main className="container mx-auto p-4 lg:p-6">{children}</main>
     </div>
   );
 }
