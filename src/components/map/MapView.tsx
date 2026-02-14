@@ -353,9 +353,17 @@ export default function MapView({
     const points = getPointsToShow();
 
     points.forEach((point) => {
-      // Créer un élément HTML pour le marqueur
+      // Créer un conteneur pour le marqueur avec position fixe
+      const container = document.createElement("div");
+      container.style.cssText = `
+        width: 40px;
+        height: 40px;
+        position: relative;
+      `;
+
+      // Créer l'élément visuel du marqueur
       const el = document.createElement("div");
-      el.className = "mapbox-marker";
+      el.className = "mapbox-marker-icon";
       el.style.cssText = `
         width: 40px;
         height: 40px;
@@ -368,26 +376,68 @@ export default function MapView({
         cursor: pointer;
         border: 3px solid white;
         box-shadow: 0 2px 10px rgba(0,0,0,0.3);
-        transition: transform 0.2s;
+        position: absolute;
+        top: 0;
+        left: 0;
       `;
       el.innerHTML = POINT_ICONS[point.type];
-      el.onmouseenter = () => (el.style.transform = "scale(1.2)");
-      el.onmouseleave = () => (el.style.transform = "scale(1)");
 
-      // Créer le popup
-      const popup = new mapboxgl.Popup({ offset: 25 }).setHTML(`
-        <div style="padding: 8px;">
-          <h3 style="font-weight: bold; margin-bottom: 4px; color: ${POINT_COLORS[point.type]};">
+      container.appendChild(el);
+
+      // Créer le popup avec les détails
+      const popup = new mapboxgl.Popup({
+        offset: 25,
+        closeButton: true,
+        closeOnClick: false,
+        maxWidth: "300px",
+      }).setHTML(`
+        <div style="padding: 10px;">
+          <h3 style="font-weight: bold; margin-bottom: 6px; color: ${POINT_COLORS[point.type]}; font-size: 16px;">
             ${point.name}
           </h3>
-          <p style="margin: 0; color: #666; font-size: 14px;">
+          <p style="margin: 0; color: #666; font-size: 14px; line-height: 1.4;">
             ${point.description}
           </p>
         </div>
       `);
 
-      // Ajouter le marqueur à la carte
-      const marker = new mapboxgl.Marker(el)
+      // Créer le tooltip pour le hover (affiche le nom)
+      const tooltip = document.createElement("div");
+      tooltip.style.cssText = `
+        position: absolute;
+        bottom: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        background-color: #1f2937;
+        color: white;
+        padding: 6px 10px;
+        border-radius: 6px;
+        font-size: 13px;
+        font-weight: 500;
+        white-space: nowrap;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.2s;
+        margin-bottom: 8px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        z-index: 10;
+      `;
+      tooltip.innerHTML = point.name;
+      container.appendChild(tooltip);
+
+      // Gérer le hover - afficher le tooltip
+      container.onmouseenter = () => {
+        tooltip.style.opacity = "1";
+      };
+      container.onmouseleave = () => {
+        tooltip.style.opacity = "0";
+      };
+
+      // Ajouter le marqueur à la carte avec ancrage au centre
+      const marker = new mapboxgl.Marker({
+        element: container,
+        anchor: "center",
+      })
         .setLngLat(point.coordinates)
         .setPopup(popup)
         .addTo(map.current!);
