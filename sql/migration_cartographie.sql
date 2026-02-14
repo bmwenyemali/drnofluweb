@@ -88,8 +88,8 @@ CREATE TABLE IF NOT EXISTS cartographie_territoires (
     latitude DECIMAL(10, 8),
     longitude DECIMAL(11, 8),
     altitude DECIMAL(8, 2),
-    precision_gps DECIMAL(6, 2) COMMENT 'Précision GPS en mètres',
-    polygone_geojson JSONB COMMENT 'GeoJSON polygon for territory boundaries',
+    precision_gps DECIMAL(6, 2),
+    polygone_geojson JSONB,
     superficie_km2 DECIMAL(12, 2),
     
     -- Demographics
@@ -124,6 +124,10 @@ CREATE TABLE IF NOT EXISTS cartographie_territoires (
 CREATE INDEX idx_territoires_type ON cartographie_territoires(type);
 CREATE INDEX idx_territoires_parent ON cartographie_territoires(parent_id);
 CREATE INDEX idx_territoires_coords ON cartographie_territoires(latitude, longitude);
+
+-- Add column comments
+COMMENT ON COLUMN cartographie_territoires.precision_gps IS 'Précision GPS en mètres';
+COMMENT ON COLUMN cartographie_territoires.polygone_geojson IS 'GeoJSON polygon for territory boundaries';
 
 -- ============================================================================
 -- 4. PROJECTS TABLE (Projets)
@@ -211,7 +215,7 @@ CREATE TABLE IF NOT EXISTS cartographie_zones_minieres (
     longitude DECIMAL(11, 8) NOT NULL,
     altitude DECIMAL(8, 2),
     precision_gps DECIMAL(6, 2),
-    polygone_geojson JSONB COMMENT 'GeoJSON polygon for mine boundaries',
+    polygone_geojson JSONB,
     superficie_km2 DECIMAL(12, 2),
     
     -- Mine details
@@ -257,6 +261,9 @@ CREATE INDEX idx_zones_minieres_territoire ON cartographie_zones_minieres(territ
 CREATE INDEX idx_zones_minieres_type ON cartographie_zones_minieres(type_exploitation);
 CREATE INDEX idx_zones_minieres_coords ON cartographie_zones_minieres(latitude, longitude);
 CREATE INDEX idx_zones_minieres_minerais ON cartographie_zones_minieres USING GIN(minerais);
+
+-- Add column comments
+COMMENT ON COLUMN cartographie_zones_minieres.polygone_geojson IS 'GeoJSON polygon for mine boundaries';
 
 -- ============================================================================
 -- 6. REVENUE POINTS TABLE (Points de Recettes)
@@ -439,6 +446,15 @@ CREATE POLICY "Admins/editors can manage infrastructures" ON cartographie_infras
 -- ============================================================================
 -- 9. TRIGGERS FOR UPDATED_AT
 -- ============================================================================
+
+-- Create the update_updated_at function if it doesn't exist
+CREATE OR REPLACE FUNCTION update_updated_at()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = NOW();
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
 
 DROP TRIGGER IF EXISTS update_cartographie_icones_updated_at ON cartographie_icones;
 CREATE TRIGGER update_cartographie_icones_updated_at
