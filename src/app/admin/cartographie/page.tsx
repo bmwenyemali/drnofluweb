@@ -142,6 +142,20 @@ export default function CartographieAdminPage() {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
 
+  // Filter states
+  const [filterTerritoireType, setFilterTerritoireType] =
+    useState<string>("all");
+  const [filterProjetTerritoire, setFilterProjetTerritoire] =
+    useState<string>("all");
+  const [filterProjetType, setFilterProjetType] = useState<string>("all");
+  const [filterProjetStatut, setFilterProjetStatut] = useState<string>("all");
+  const [filterMineTerritoire, setFilterMineTerritoire] =
+    useState<string>("all");
+  const [filterMineType, setFilterMineType] = useState<string>("all");
+  const [filterRecetteTerritoire, setFilterRecetteTerritoire] =
+    useState<string>("all");
+  const [filterRecetteType, setFilterRecetteType] = useState<string>("all");
+
   // Data states
   const [territoires, setTerritoires] = useState<CartographieTerritoire[]>([]);
   const [projets, setProjets] = useState<CartographieProjet[]>([]);
@@ -272,19 +286,53 @@ export default function CartographieAdminPage() {
     }).format(amount);
   };
 
-  // Filter data based on search
-  const filteredTerritoires = territoires.filter((t) =>
-    t.nom.toLowerCase().includes(searchQuery.toLowerCase()),
-  );
-  const filteredProjets = projets.filter((p) =>
-    p.nom.toLowerCase().includes(searchQuery.toLowerCase()),
-  );
-  const filteredMines = mines.filter((m) =>
-    m.nom.toLowerCase().includes(searchQuery.toLowerCase()),
-  );
-  const filteredRecettes = pointsRecettes.filter((r) =>
-    r.nom.toLowerCase().includes(searchQuery.toLowerCase()),
-  );
+  // Filter data based on search and dropdown filters
+  const filteredTerritoires = territoires.filter((t) => {
+    const matchesSearch = t.nom
+      .toLowerCase()
+      .includes(searchQuery.toLowerCase());
+    const matchesType =
+      filterTerritoireType === "all" || t.type === filterTerritoireType;
+    return matchesSearch && matchesType;
+  });
+
+  const filteredProjets = projets.filter((p: any) => {
+    const matchesSearch = p.nom
+      .toLowerCase()
+      .includes(searchQuery.toLowerCase());
+    const matchesTerritoire =
+      filterProjetTerritoire === "all" ||
+      p.territoire_id === filterProjetTerritoire;
+    const matchesType =
+      filterProjetType === "all" || p.type_projet === filterProjetType;
+    const matchesStatut =
+      filterProjetStatut === "all" || p.statut === filterProjetStatut;
+    return matchesSearch && matchesTerritoire && matchesType && matchesStatut;
+  });
+
+  const filteredMines = mines.filter((m: any) => {
+    const matchesSearch = m.nom
+      .toLowerCase()
+      .includes(searchQuery.toLowerCase());
+    const matchesTerritoire =
+      filterMineTerritoire === "all" ||
+      m.territoire_id === filterMineTerritoire;
+    const matchesType =
+      filterMineType === "all" || m.type_exploitation === filterMineType;
+    return matchesSearch && matchesTerritoire && matchesType;
+  });
+
+  const filteredRecettes = pointsRecettes.filter((r: any) => {
+    const matchesSearch = r.nom
+      .toLowerCase()
+      .includes(searchQuery.toLowerCase());
+    const matchesTerritoire =
+      filterRecetteTerritoire === "all" ||
+      r.territoire_id === filterRecetteTerritoire;
+    const matchesType =
+      filterRecetteType === "all" || r.type_bureau === filterRecetteType;
+    return matchesSearch && matchesTerritoire && matchesType;
+  });
 
   // Stats
   const stats = {
@@ -412,7 +460,41 @@ export default function CartographieAdminPage() {
         <TabsContent value="territoires" className="mt-6">
           <Card>
             <CardHeader>
-              <CardTitle>Territoires</CardTitle>
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <CardTitle>Territoires</CardTitle>
+                <div className="flex flex-wrap gap-2">
+                  <Select
+                    value={filterTerritoireType}
+                    onValueChange={setFilterTerritoireType}
+                  >
+                    <SelectTrigger className="w-[180px]">
+                      <SelectValue placeholder="Filtrer par type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Tous les types</SelectItem>
+                      {Object.entries(TYPE_TERRITOIRE_LABELS).map(
+                        ([key, label]) => (
+                          <SelectItem key={key} value={key}>
+                            {label}
+                          </SelectItem>
+                        ),
+                      )}
+                    </SelectContent>
+                  </Select>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setSelectedItem(null);
+                      setItemType("territoires");
+                      setEditDialogOpen(true);
+                    }}
+                  >
+                    <Plus className="mr-2 h-4 w-4" />
+                    Ajouter
+                  </Button>
+                </div>
+              </div>
             </CardHeader>
             <CardContent>
               {loading ? (
@@ -512,7 +594,75 @@ export default function CartographieAdminPage() {
         <TabsContent value="projets" className="mt-6">
           <Card>
             <CardHeader>
-              <CardTitle>Projets</CardTitle>
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <CardTitle>Projets</CardTitle>
+                <div className="flex flex-wrap gap-2">
+                  <Select
+                    value={filterProjetTerritoire}
+                    onValueChange={setFilterProjetTerritoire}
+                  >
+                    <SelectTrigger className="w-[180px]">
+                      <SelectValue placeholder="Territoire" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Tous les territoires</SelectItem>
+                      {territoires.map((t) => (
+                        <SelectItem key={t.id} value={t.id}>
+                          {t.nom}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Select
+                    value={filterProjetType}
+                    onValueChange={setFilterProjetType}
+                  >
+                    <SelectTrigger className="w-[150px]">
+                      <SelectValue placeholder="Type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Tous types</SelectItem>
+                      {Object.entries(TYPE_PROJET_LABELS).map(
+                        ([key, label]) => (
+                          <SelectItem key={key} value={key}>
+                            {label}
+                          </SelectItem>
+                        ),
+                      )}
+                    </SelectContent>
+                  </Select>
+                  <Select
+                    value={filterProjetStatut}
+                    onValueChange={setFilterProjetStatut}
+                  >
+                    <SelectTrigger className="w-[140px]">
+                      <SelectValue placeholder="Statut" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Tous statuts</SelectItem>
+                      {Object.entries(STATUT_PROJET_LABELS).map(
+                        ([key, label]) => (
+                          <SelectItem key={key} value={key}>
+                            {label}
+                          </SelectItem>
+                        ),
+                      )}
+                    </SelectContent>
+                  </Select>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setSelectedItem(null);
+                      setItemType("projets");
+                      setEditDialogOpen(true);
+                    }}
+                  >
+                    <Plus className="mr-2 h-4 w-4" />
+                    Ajouter
+                  </Button>
+                </div>
+              </div>
             </CardHeader>
             <CardContent>
               {loading ? (
@@ -632,7 +782,57 @@ export default function CartographieAdminPage() {
         <TabsContent value="mines" className="mt-6">
           <Card>
             <CardHeader>
-              <CardTitle>Zones Minières</CardTitle>
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <CardTitle>Zones Minières</CardTitle>
+                <div className="flex flex-wrap gap-2">
+                  <Select
+                    value={filterMineTerritoire}
+                    onValueChange={setFilterMineTerritoire}
+                  >
+                    <SelectTrigger className="w-[180px]">
+                      <SelectValue placeholder="Territoire" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Tous les territoires</SelectItem>
+                      {territoires.map((t) => (
+                        <SelectItem key={t.id} value={t.id}>
+                          {t.nom}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Select
+                    value={filterMineType}
+                    onValueChange={setFilterMineType}
+                  >
+                    <SelectTrigger className="w-[180px]">
+                      <SelectValue placeholder="Type exploitation" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Tous types</SelectItem>
+                      {Object.entries(TYPE_EXPLOITATION_LABELS).map(
+                        ([key, label]) => (
+                          <SelectItem key={key} value={key}>
+                            {label}
+                          </SelectItem>
+                        ),
+                      )}
+                    </SelectContent>
+                  </Select>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setSelectedItem(null);
+                      setItemType("mines");
+                      setEditDialogOpen(true);
+                    }}
+                  >
+                    <Plus className="mr-2 h-4 w-4" />
+                    Ajouter
+                  </Button>
+                </div>
+              </div>
             </CardHeader>
             <CardContent>
               {loading ? (
@@ -759,7 +959,57 @@ export default function CartographieAdminPage() {
         <TabsContent value="recettes" className="mt-6">
           <Card>
             <CardHeader>
-              <CardTitle>Points de Recettes</CardTitle>
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <CardTitle>Points de Recettes</CardTitle>
+                <div className="flex flex-wrap gap-2">
+                  <Select
+                    value={filterRecetteTerritoire}
+                    onValueChange={setFilterRecetteTerritoire}
+                  >
+                    <SelectTrigger className="w-[180px]">
+                      <SelectValue placeholder="Territoire" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Tous les territoires</SelectItem>
+                      {territoires.map((t) => (
+                        <SelectItem key={t.id} value={t.id}>
+                          {t.nom}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Select
+                    value={filterRecetteType}
+                    onValueChange={setFilterRecetteType}
+                  >
+                    <SelectTrigger className="w-[150px]">
+                      <SelectValue placeholder="Type bureau" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Tous types</SelectItem>
+                      {Object.entries(TYPE_BUREAU_LABELS).map(
+                        ([key, label]) => (
+                          <SelectItem key={key} value={key}>
+                            {label}
+                          </SelectItem>
+                        ),
+                      )}
+                    </SelectContent>
+                  </Select>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setSelectedItem(null);
+                      setItemType("recettes");
+                      setEditDialogOpen(true);
+                    }}
+                  >
+                    <Plus className="mr-2 h-4 w-4" />
+                    Ajouter
+                  </Button>
+                </div>
+              </div>
             </CardHeader>
             <CardContent>
               {loading ? (

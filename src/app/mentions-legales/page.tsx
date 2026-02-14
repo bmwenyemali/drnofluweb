@@ -184,20 +184,13 @@ export default function MentionsLegalesPage() {
               <CardHeader>
                 <CardTitle>Crédits</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent>
                 <div>
                   <h3 className="font-semibold mb-2">
                     Conception et développement
                   </h3>
                   <p className="text-gray-600">
                     Cellule Communication - DRNOFLU
-                  </p>
-                </div>
-                <Separator />
-                <div>
-                  <h3 className="font-semibold mb-2">Technologies utilisées</h3>
-                  <p className="text-gray-600">
-                    Next.js, React, Tailwind CSS, Supabase
                   </p>
                 </div>
               </CardContent>
