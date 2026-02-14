@@ -1519,6 +1519,41 @@ function EditCartographieDialog({
                   />
                 </div>
               </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label>Maître d&apos;ouvrage</Label>
+                  <Input
+                    value={formData.maitre_ouvrage || ""}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        maitre_ouvrage: e.target.value,
+                      })
+                    }
+                    placeholder="DRNOFLU / Province"
+                  />
+                </div>
+                <div>
+                  <Label>Entrepreneur</Label>
+                  <Input
+                    value={formData.entrepreneur || ""}
+                    onChange={(e) =>
+                      setFormData({ ...formData, entrepreneur: e.target.value })
+                    }
+                    placeholder="Nom de l'entrepreneur"
+                  />
+                </div>
+              </div>
+              <div>
+                <Label>Adresse / Localisation</Label>
+                <Input
+                  value={formData.adresse || ""}
+                  onChange={(e) =>
+                    setFormData({ ...formData, adresse: e.target.value })
+                  }
+                  placeholder="Avenue, Quartier, Ville"
+                />
+              </div>
             </>
           )}
 
@@ -1652,6 +1687,29 @@ function EditCartographieDialog({
                   />
                 </div>
                 <div>
+                  <Label>Email</Label>
+                  <Input
+                    type="email"
+                    value={formData.email || ""}
+                    onChange={(e) =>
+                      setFormData({ ...formData, email: e.target.value })
+                    }
+                    placeholder="email@drnoflu.cd"
+                  />
+                </div>
+              </div>
+              <div>
+                <Label>Adresse</Label>
+                <Input
+                  value={formData.adresse || ""}
+                  onChange={(e) =>
+                    setFormData({ ...formData, adresse: e.target.value })
+                  }
+                  placeholder="123 Avenue, Ville"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
                   <Label>Horaires</Label>
                   <Input
                     value={formData.horaires || ""}
@@ -1659,6 +1717,22 @@ function EditCartographieDialog({
                       setFormData({ ...formData, horaires: e.target.value })
                     }
                     placeholder="Lun-Ven: 8h-16h"
+                  />
+                </div>
+                <div>
+                  <Label>Services offerts (séparés par des virgules)</Label>
+                  <Input
+                    value={(formData.services_offerts || []).join(", ")}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        services_offerts: e.target.value
+                          .split(",")
+                          .map((s: string) => s.trim())
+                          .filter(Boolean),
+                      })
+                    }
+                    placeholder="Perception, Déclaration, Conseil"
                   />
                 </div>
               </div>

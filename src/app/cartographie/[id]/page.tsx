@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import dynamic from "next/dynamic";
@@ -22,10 +22,13 @@ import {
   CheckCircle,
   AlertCircle,
   ArrowUpRight,
+  Filter,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -47,6 +50,8 @@ import {
   TypeProjet,
   StatutProjet,
 } from "@/lib/types";
+
+import type { MapPoint } from "@/components/map/MapView";
 
 // Import dynamique pour éviter les erreurs SSR avec Mapbox
 const MapView = dynamic(() => import("@/components/map/MapView"), {
@@ -137,6 +142,11 @@ export default function TerritoireDetailPage() {
     CartographieTerritoire[]
   >([]);
 
+  // Map filter states
+  const [showRecettes, setShowRecettes] = useState(true);
+  const [showProjets, setShowProjets] = useState(true);
+  const [showMines, setShowMines] = useState(true);
+
   const supabase = createBrowserClient();
 
   useEffect(() => {
@@ -203,6 +213,57 @@ export default function TerritoireDetailPage() {
       fetchData();
     }
   }, [id, supabase]);
+
+  // Convert database data to MapPoint format for the map
+  const recetteMapPoints = useMemo((): MapPoint[] => {
+    return pointsRecettes.map((r) => ({
+      id: r.id,
+      name: r.nom,
+      description:
+        r.description ||
+        TYPE_BUREAU_LABELS[r.type_bureau] ||
+        "Bureau de perception",
+      coordinates: [Number(r.longitude), Number(r.latitude)] as [
+        number,
+        number,
+      ],
+      type: "recette" as const,
+      address: r.adresse || undefined,
+      phone: r.telephone || undefined,
+      email: r.email || undefined,
+    }));
+  }, [pointsRecettes]);
+
+  const projetMapPoints = useMemo((): MapPoint[] => {
+    return projets.map((p) => ({
+      id: p.id,
+      name: p.nom,
+      description:
+        p.description ||
+        `${TYPE_PROJET_LABELS[p.type_projet]} - ${STATUT_PROJET_LABELS[p.statut]}`,
+      coordinates: [Number(p.longitude), Number(p.latitude)] as [
+        number,
+        number,
+      ],
+      type: "projet" as const,
+      address: p.adresse || undefined,
+    }));
+  }, [projets]);
+
+  const mineMapPoints = useMemo((): MapPoint[] => {
+    return mines.map((m) => ({
+      id: m.id,
+      name: m.nom,
+      description:
+        m.description ||
+        `${TYPE_EXPLOITATION_LABELS[m.type_exploitation]} - ${(m.minerais || []).join(", ")}`,
+      coordinates: [Number(m.longitude), Number(m.latitude)] as [
+        number,
+        number,
+      ],
+      type: "mine" as const,
+    }));
+  }, [mines]);
 
   // Format currency
   const formatUSD = (amount: number | null | undefined) => {
@@ -355,10 +416,63 @@ export default function TerritoireDetailPage() {
               {territoire.latitude && territoire.longitude && (
                 <Card>
                   <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <MapPin className="h-5 w-5" />
-                      Localisation
-                    </CardTitle>
+                    <div className="flex items-center justify-between flex-wrap gap-4">
+                      <CardTitle className="flex items-center gap-2">
+                        <MapPin className="h-5 w-5" />
+                        Localisation
+                      </CardTitle>
+                      {/* Map filters */}
+                      <div className="flex items-center gap-4 flex-wrap">
+                        <div className="flex items-center space-x-2">
+                          <Checkbox
+                            id="recettes"
+                            checked={showRecettes}
+                            onCheckedChange={(checked) =>
+                              setShowRecettes(checked as boolean)
+                            }
+                          />
+                          <Label
+                            htmlFor="recettes"
+                            className="flex items-center gap-1 cursor-pointer text-sm"
+                          >
+                            <Coins className="h-3 w-3 text-green-600" />
+                            Recettes
+                          </Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Checkbox
+                            id="projets-filter"
+                            checked={showProjets}
+                            onCheckedChange={(checked) =>
+                              setShowProjets(checked as boolean)
+                            }
+                          />
+                          <Label
+                            htmlFor="projets-filter"
+                            className="flex items-center gap-1 cursor-pointer text-sm"
+                          >
+                            <HardHat className="h-3 w-3 text-yellow-600" />
+                            Projets
+                          </Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Checkbox
+                            id="mines-filter"
+                            checked={showMines}
+                            onCheckedChange={(checked) =>
+                              setShowMines(checked as boolean)
+                            }
+                          />
+                          <Label
+                            htmlFor="mines-filter"
+                            className="flex items-center gap-1 cursor-pointer text-sm"
+                          >
+                            <Pickaxe className="h-3 w-3 text-red-600" />
+                            Mines
+                          </Label>
+                        </div>
+                      </div>
+                    </div>
                   </CardHeader>
                   <CardContent className="p-0">
                     <MapView
@@ -367,10 +481,13 @@ export default function TerritoireDetailPage() {
                         lat: territoire.latitude,
                       }}
                       zoom={11}
+                      recettePoints={recetteMapPoints}
+                      projetPoints={projetMapPoints}
+                      minePoints={mineMapPoints}
                       showSiege={false}
-                      showRecettes={true}
-                      showProjets={true}
-                      showMines={true}
+                      showRecettes={showRecettes}
+                      showProjets={showProjets}
+                      showMines={showMines}
                       height="400px"
                     />
                   </CardContent>
@@ -469,6 +586,12 @@ export default function TerritoireDetailPage() {
                             )}
 
                             <div className="flex flex-wrap gap-4 text-sm text-gray-600">
+                              {projet.adresse && (
+                                <div className="flex items-center gap-1">
+                                  <MapPin className="h-4 w-4" />
+                                  {projet.adresse}
+                                </div>
+                              )}
                               {projet.date_debut && (
                                 <div className="flex items-center gap-1">
                                   <Calendar className="h-4 w-4" />
@@ -495,6 +618,31 @@ export default function TerritoireDetailPage() {
                                 </div>
                               )}
                             </div>
+
+                            {(projet.maitre_ouvrage || projet.entrepreneur) && (
+                              <div className="mt-4 flex flex-wrap gap-4 text-sm">
+                                {projet.maitre_ouvrage && (
+                                  <div>
+                                    <span className="text-gray-500">
+                                      Maître d&apos;ouvrage:{" "}
+                                    </span>
+                                    <span className="font-medium">
+                                      {projet.maitre_ouvrage}
+                                    </span>
+                                  </div>
+                                )}
+                                {projet.entrepreneur && (
+                                  <div>
+                                    <span className="text-gray-500">
+                                      Entrepreneur:{" "}
+                                    </span>
+                                    <span className="font-medium">
+                                      {projet.entrepreneur}
+                                    </span>
+                                  </div>
+                                )}
+                              </div>
+                            )}
 
                             {projet.pourcentage_avancement > 0 && (
                               <div className="mt-4">
@@ -674,10 +822,22 @@ export default function TerritoireDetailPage() {
                             )}
 
                             <div className="flex flex-wrap gap-4 text-sm text-gray-600">
+                              {point.adresse && (
+                                <div className="flex items-center gap-1">
+                                  <MapPin className="h-4 w-4" />
+                                  {point.adresse}
+                                </div>
+                              )}
                               {point.telephone && (
                                 <div className="flex items-center gap-1">
                                   <Phone className="h-4 w-4" />
                                   {point.telephone}
+                                </div>
+                              )}
+                              {point.email && (
+                                <div className="flex items-center gap-1">
+                                  <Mail className="h-4 w-4" />
+                                  {point.email}
                                 </div>
                               )}
                               {point.horaires && (
