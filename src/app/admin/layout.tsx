@@ -23,6 +23,7 @@ import {
   Lightbulb,
   Activity,
   Calculator,
+  MapPin,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -82,6 +83,12 @@ const ADMIN_NAV: NavItem[] = [
     href: "/admin/services",
     icon: Briefcase,
     roles: ["admin"],
+  },
+  {
+    label: "Cartographie",
+    href: "/admin/cartographie",
+    icon: MapPin,
+    roles: ["admin", "editeur"],
   },
   {
     label: "Chiffres Clés",

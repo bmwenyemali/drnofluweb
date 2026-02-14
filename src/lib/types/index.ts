@@ -346,3 +346,336 @@ export interface BonASavoirFormData {
   ordre: number;
   publie: boolean;
 }
+
+// ============================================================================
+// CARTOGRAPHY TYPES
+// ============================================================================
+
+// Cartography Icon
+export interface CartographieIcone {
+  id: string;
+  nom: string;
+  label: string;
+  categorie:
+    | "territoire"
+    | "projet"
+    | "mine"
+    | "recette"
+    | "infrastructure"
+    | "autre";
+  couleur: string;
+  svg_path?: string;
+  lucide_icon?: string;
+  actif: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+// Territory types
+export type TypeTerritoire =
+  | "province"
+  | "ville"
+  | "territoire"
+  | "chefferie"
+  | "secteur"
+  | "groupement"
+  | "localite";
+
+// Territory
+export interface CartographieTerritoire {
+  id: string;
+  nom: string;
+  type: TypeTerritoire;
+  code?: string;
+  parent_id?: string;
+  parent?: CartographieTerritoire;
+
+  // Geographic data
+  latitude?: number;
+  longitude?: number;
+  altitude?: number;
+  precision_gps?: number;
+  polygone_geojson?: Record<string, unknown>;
+  superficie_km2?: number;
+
+  // Demographics
+  population?: number;
+  annee_population?: number;
+  densite_population?: number;
+
+  // Administrative
+  chef_lieu?: string;
+  administrateur?: string;
+  contact_telephone?: string;
+  contact_email?: string;
+
+  // Display
+  icone_id?: string;
+  icone?: CartographieIcone;
+  couleur: string;
+
+  // Description
+  description?: string;
+  particularites?: string;
+  ressources_principales?: string[];
+
+  // Status
+  actif: boolean;
+  ordre: number;
+
+  created_at: string;
+  updated_at: string;
+}
+
+// Project types
+export type TypeProjet =
+  | "infrastructure"
+  | "education"
+  | "sante"
+  | "eau"
+  | "electricite"
+  | "route"
+  | "pont"
+  | "marche"
+  | "agriculture"
+  | "environnement"
+  | "social"
+  | "autre";
+export type StatutProjet =
+  | "propose"
+  | "planifie"
+  | "en_cours"
+  | "suspendu"
+  | "termine"
+  | "annule";
+
+// Project
+export interface CartographieProjet {
+  id: string;
+  nom: string;
+  description?: string;
+
+  // Location
+  territoire_id?: string;
+  territoire?: CartographieTerritoire;
+  latitude: number;
+  longitude: number;
+  altitude?: number;
+  precision_gps?: number;
+  adresse?: string;
+
+  // Project details
+  type_projet: TypeProjet;
+  secteur?: string;
+
+  // Dates
+  date_debut?: string;
+  date_fin_prevue?: string;
+  date_fin_reelle?: string;
+  annee: number;
+
+  // Status
+  statut: StatutProjet;
+  pourcentage_avancement: number;
+
+  // Financials
+  cout_estime_usd?: number;
+  cout_reel_usd?: number;
+  source_financement?: string;
+
+  // Beneficiaries
+  beneficiaires_prevus?: number;
+  beneficiaires_reels?: number;
+
+  // Contractor
+  maitre_ouvrage?: string;
+  entrepreneur?: string;
+
+  // Display
+  icone_id?: string;
+  icone?: CartographieIcone;
+  couleur: string;
+  images?: string[];
+
+  // Additional details
+  details?: Record<string, unknown>;
+
+  // Status
+  publie: boolean;
+  propose_par?: string;
+  valide_par?: string;
+  date_validation?: string;
+
+  created_at: string;
+  updated_at: string;
+}
+
+// Mining zone types
+export type TypeExploitation =
+  | "industrielle"
+  | "artisanale"
+  | "semi_industrielle"
+  | "carriere";
+
+// Mining Zone
+export interface CartographieZoneMiniere {
+  id: string;
+  nom: string;
+  description?: string;
+
+  // Location
+  territoire_id?: string;
+  territoire?: CartographieTerritoire;
+  latitude: number;
+  longitude: number;
+  altitude?: number;
+  precision_gps?: number;
+  polygone_geojson?: Record<string, unknown>;
+  superficie_km2?: number;
+
+  // Mine details
+  type_exploitation: TypeExploitation;
+  minerais: string[];
+  operateur?: string;
+  permis_numero?: string;
+  permis_date_debut?: string;
+  permis_date_fin?: string;
+
+  // Production
+  production_annuelle_tonnes?: number;
+  annee_production?: number;
+
+  // Employment
+  employes_directs?: number;
+  employes_indirects?: number;
+
+  // Revenue
+  redevances_annuelles_usd?: number;
+  annee_redevances?: number;
+
+  // Display
+  icone_id?: string;
+  icone?: CartographieIcone;
+  couleur: string;
+  images?: string[];
+
+  // Additional details
+  details?: Record<string, unknown>;
+
+  // Status
+  actif: boolean;
+  publie: boolean;
+
+  created_at: string;
+  updated_at: string;
+}
+
+// Revenue point types
+export type TypeBureau =
+  | "siege"
+  | "perception"
+  | "antenne"
+  | "guichet"
+  | "mobile";
+
+// Revenue Point
+export interface CartographiePointRecette {
+  id: string;
+  nom: string;
+  description?: string;
+
+  // Location
+  territoire_id?: string;
+  territoire?: CartographieTerritoire;
+  latitude: number;
+  longitude: number;
+  altitude?: number;
+  precision_gps?: number;
+  adresse?: string;
+
+  // Office details
+  type_bureau: TypeBureau;
+  responsable?: string;
+  telephone?: string;
+  email?: string;
+  horaires?: string;
+
+  // Services
+  services_offerts?: string[];
+
+  // Revenue data
+  recettes_2024_usd?: number;
+  recettes_2025_usd?: number;
+  objectif_annuel_usd?: number;
+
+  // Display
+  icone_id?: string;
+  icone?: CartographieIcone;
+  couleur: string;
+  images?: string[];
+
+  // Additional details
+  details?: Record<string, unknown>;
+
+  // Status
+  actif: boolean;
+  publie: boolean;
+
+  created_at: string;
+  updated_at: string;
+}
+
+// Infrastructure types
+export type TypeInfrastructure =
+  | "ecole"
+  | "hopital"
+  | "centre_sante"
+  | "marche"
+  | "eau"
+  | "electricite"
+  | "route"
+  | "pont"
+  | "batiment_public"
+  | "autre";
+
+// Infrastructure
+export interface CartographieInfrastructure {
+  id: string;
+  nom: string;
+  description?: string;
+
+  // Location
+  territoire_id?: string;
+  territoire?: CartographieTerritoire;
+  latitude: number;
+  longitude: number;
+  altitude?: number;
+  precision_gps?: number;
+  adresse?: string;
+
+  // Details
+  type_infrastructure: TypeInfrastructure;
+  gestionnaire?: string;
+  capacite?: string;
+  annee_construction?: number;
+
+  // Link to project
+  projet_id?: string;
+  projet?: CartographieProjet;
+
+  // Display
+  icone_id?: string;
+  icone?: CartographieIcone;
+  couleur: string;
+  images?: string[];
+
+  // Additional details
+  details?: Record<string, unknown>;
+
+  // Status
+  actif: boolean;
+  publie: boolean;
+
+  created_at: string;
+  updated_at: string;
+}

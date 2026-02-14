@@ -16,6 +16,7 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 import { createBrowserClient } from "@/lib/supabase";
+import { createActivityLogger } from "@/lib/activity-logger";
 
 export default function AdminLoginPage() {
   const [email, setEmail] = useState("");
@@ -49,7 +50,7 @@ export default function AdminLoginPage() {
         // Vérifier le rôle de l'utilisateur
         const { data: profile, error: profileError } = await supabase
           .from("profiles")
-          .select("role")
+          .select("role, nom_complet")
           .eq("id", data.user.id)
           .single();
 
@@ -68,6 +69,13 @@ export default function AdminLoginPage() {
           setLoading(false);
           return;
         }
+
+        // Log the successful login
+        const activityLogger = createActivityLogger(supabase);
+        await activityLogger.logLogin(
+          data.user.email || email,
+          profile.nom_complet,
+        );
 
         router.push("/admin");
       }

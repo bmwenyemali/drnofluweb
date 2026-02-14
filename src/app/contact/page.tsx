@@ -26,6 +26,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { SITE_CONFIG } from "@/lib/config";
+import { createBrowserClient } from "@/lib/supabase";
 
 // Import dynamique pour éviter les erreurs SSR avec Mapbox
 const MapView = dynamic(() => import("@/components/map/MapView"), {
@@ -46,16 +47,48 @@ const MapView = dynamic(() => import("@/components/map/MapView"), {
 export default function ContactPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const supabase = createBrowserClient();
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setError(null);
 
-    // Simulation d'envoi
-    await new Promise((resolve) => setTimeout(resolve, 1500));
+    const formData = new FormData(e.currentTarget);
+    const nom = formData.get("nom") as string;
+    const email = formData.get("email") as string;
+    const telephone = formData.get("telephone") as string;
+    const sujet = formData.get("sujet") as string;
+    const message = formData.get("message") as string;
 
-    setIsSubmitting(false);
-    setIsSubmitted(true);
+    try {
+      const { error: insertError } = await supabase
+        .from("contact_messages")
+        .insert({
+          nom,
+          email,
+          telephone: telephone || null,
+          sujet,
+          message,
+          lu: false,
+          traite: false,
+        });
+
+      if (insertError) {
+        console.error("Error submitting contact form:", insertError);
+        setError("Une erreur est survenue. Veuillez réessayer.");
+        setIsSubmitting(false);
+        return;
+      }
+
+      setIsSubmitting(false);
+      setIsSubmitted(true);
+    } catch (err) {
+      console.error("Error submitting contact form:", err);
+      setError("Une erreur est survenue. Veuillez réessayer.");
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -104,6 +137,12 @@ export default function ContactPage() {
                     </div>
                   ) : (
                     <form onSubmit={handleSubmit} className="space-y-6">
+                      {error && (
+                        <div className="flex items-center gap-2 p-3 bg-red-50 text-red-700 rounded-lg text-sm">
+                          <AlertCircle className="h-4 w-4 shrink-0" />
+                          <span>{error}</span>
+                        </div>
+                      )}
                       <div className="grid md:grid-cols-2 gap-4">
                         <div className="space-y-2">
                           <Label htmlFor="nom">Nom complet *</Label>
