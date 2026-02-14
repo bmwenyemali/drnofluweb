@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import {
@@ -11,12 +11,12 @@ import {
   Pickaxe,
   Layers,
   Filter,
-  Info,
   Map,
   ChevronDown,
   ChevronUp,
   ChevronRight,
   MapPinned,
+  Info,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -42,6 +42,7 @@ import {
   CartographiePointRecette,
   TypeTerritoire,
 } from "@/lib/types";
+import type { MapPoint } from "@/components/map/MapView";
 
 // Import dynamique pour éviter les erreurs SSR avec Mapbox
 const MapView = dynamic(() => import("@/components/map/MapView"), {
@@ -239,6 +240,73 @@ export default function CartographiePage() {
     0,
   );
 
+  // Convert database data to MapPoint format for the map
+  const siegeMapPoints = useMemo((): MapPoint[] => {
+    return pointsRecettes
+      .filter((r) => r.type_bureau === "siege")
+      .map((r) => ({
+        id: r.id,
+        name: r.nom,
+        description:
+          r.description || "Direction des Recettes Non Fiscales du Lualaba",
+        coordinates: [Number(r.longitude), Number(r.latitude)] as [
+          number,
+          number,
+        ],
+        type: "direction" as const,
+        address: r.adresse || undefined,
+        phone: r.telephone || undefined,
+        email: r.email || undefined,
+      }));
+  }, [pointsRecettes]);
+
+  const recetteMapPoints = useMemo((): MapPoint[] => {
+    return pointsRecettes
+      .filter((r) => r.type_bureau !== "siege")
+      .map((r) => ({
+        id: r.id,
+        name: r.nom,
+        description: r.description || "Bureau de perception",
+        coordinates: [Number(r.longitude), Number(r.latitude)] as [
+          number,
+          number,
+        ],
+        type: "recette" as const,
+        address: r.adresse || undefined,
+        phone: r.telephone || undefined,
+        email: r.email || undefined,
+      }));
+  }, [pointsRecettes]);
+
+  const projetMapPoints = useMemo((): MapPoint[] => {
+    return projets.map((p) => ({
+      id: p.id,
+      name: p.nom,
+      description: p.description || `Projet ${p.type_projet} - ${p.statut}`,
+      coordinates: [Number(p.longitude), Number(p.latitude)] as [
+        number,
+        number,
+      ],
+      type: "projet" as const,
+      address: p.adresse || undefined,
+    }));
+  }, [projets]);
+
+  const mineMapPoints = useMemo((): MapPoint[] => {
+    return mines.map((m) => ({
+      id: m.id,
+      name: m.nom,
+      description:
+        m.description ||
+        `${m.type_exploitation} - ${(m.minerais || []).join(", ")}`,
+      coordinates: [Number(m.longitude), Number(m.latitude)] as [
+        number,
+        number,
+      ],
+      type: "mine" as const,
+    }));
+  }, [mines]);
+
   return (
     <>
       {/* Hero Banner */}
@@ -422,25 +490,6 @@ export default function CartographiePage() {
                   </div>
                 </CardContent>
               </Card>
-
-              {/* Info */}
-              <Card className="bg-blue-50 border-blue-200">
-                <CardContent className="p-4">
-                  <div className="flex items-start gap-3">
-                    <Info className="h-5 w-5 text-blue-600 shrink-0 mt-0.5" />
-                    <div>
-                      <h4 className="font-medium text-blue-900 mb-1">
-                        Navigation
-                      </h4>
-                      <p className="text-sm text-blue-700">
-                        Utilisez la molette pour zoomer, cliquez et faites
-                        glisser pour vous déplacer. Cliquez sur un territoire
-                        dans le tableau pour plus de détails.
-                      </p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
             </div>
 
             {/* Carte */}
@@ -450,6 +499,10 @@ export default function CartographiePage() {
                   <MapView
                     center={MAPBOX_CONFIG.lualabaCenter}
                     zoom={MAPBOX_CONFIG.lualabaZoom}
+                    siegePoints={siegeMapPoints}
+                    recettePoints={recetteMapPoints}
+                    projetPoints={projetMapPoints}
+                    minePoints={mineMapPoints}
                     showSiege={true}
                     showRecettes={showRecettes}
                     showProjets={showProjets}
